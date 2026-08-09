@@ -1,0 +1,6 @@
+{
+  "name": "HH Goa 2026 - Navbar",
+  "description": "Retro Goan travel-poster meets modern hacker/builder aesthetic navbar for Hacker House Goa 2026.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
