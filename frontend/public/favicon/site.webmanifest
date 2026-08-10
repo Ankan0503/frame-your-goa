@@ -1,0 +1,23 @@
+{
+  "name": "Hacker House Goa 2026",
+  "short_name": "HH Goa",
+  "description": "Frame Your Goa - Turn any photo into your HH Goa 2026 Builder ID",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F0E3",
+  "theme_color": "#0B6839",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
