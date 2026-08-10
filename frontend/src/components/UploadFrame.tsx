@@ -71,7 +71,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
   }
 
   return (
-    <div className="relative overflow-visible w-full max-w-[340px] sm:max-w-[420px] lg:w-[420px] select-none mx-auto lg:mx-0">
+    <div className="relative overflow-visible w-full max-w-[320px] min-[380px]:max-w-[340px] sm:max-w-[420px] lg:w-[min(420px,36vw)] xl:w-[420px] select-none mx-auto lg:mx-0">
       {/* DECORATIVE GOA BACKGROUND (BEHIND UPLOAD CARD) */}
       <picture>
         <source type="image/avif" srcSet="/assets/goa-background-decor.avif" />
@@ -100,7 +100,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
       {/* OUTER CARD */}
       <div
-        className="w-full h-[400px] sm:h-[500px] bg-[#F8F2E6] border border-[#D8CDB9] rounded-[18px] p-[16px] sm:p-[24px] relative z-2 transition-all duration-180 ease-out"
+        className="w-full h-[360px] min-[380px]:h-[400px] sm:h-[500px] bg-[#F8F2E6] border border-[#D8CDB9] rounded-[18px] p-[14px] min-[380px]:p-[16px] sm:p-[24px] relative z-2 transition-all duration-180 ease-out"
         style={{
           boxShadow: '0 12px 28px rgba(23, 63, 50, 0.08)'
         }}

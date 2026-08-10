@@ -17,6 +17,16 @@ body {
   font-family: 'IBM Plex Mono', monospace;
   background-color: #F6F0E3;
   color: #173F32;
+  min-width: 320px;
+  overflow-x: clip;
+}
+
+img, svg {
+  max-width: 100%;
+}
+
+button, a, input {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Subtle paper texture overlay */

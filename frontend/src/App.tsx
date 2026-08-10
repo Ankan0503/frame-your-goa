@@ -1,101 +1,70 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { GeneratorSection } from './components/GeneratorSection';
+import { CreateUploadPanel } from './components/CreateUploadPanel';
+import { useImageUpload } from './hooks/useImageUpload';
+
+type View = 'landing' | 'create' | 'generator';
+const viewFromPath = (): View => window.location.pathname === '/create' ? 'create' : 'landing';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'generator'>('landing');
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<View>(viewFromPath);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const { image, error, isProcessing, selectFile, reset } = useImageUpload();
 
-  const handleFileSelect = (file: File) => {
-    const imageUrl = URL.createObjectURL(file);
-    setUploadedImageUrl(imageUrl);
+  useEffect(() => {
+    const onPopState = () => {
+      setDirection('backward');
+      setCurrentView(viewFromPath());
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const showCreate = () => {
     setDirection('forward');
-    setCurrentView('generator');
+    setCurrentView('create');
+    if (window.location.pathname !== '/create') window.history.pushState({}, '', '/create');
   };
 
-  const handleCreateClick = () => {
-    if (uploadedImageUrl) {
+  const showLanding = () => {
+    setDirection('backward');
+    setCurrentView('landing');
+    if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+  };
+
+  const handleFileSelect = async (file: File) => {
+    if (currentView !== 'create') showCreate();
+    const uploaded = await selectFile(file);
+    if (uploaded) {
       setDirection('forward');
       setCurrentView('generator');
-    } else {
-      const fileInput = document.getElementById('landing-file-input');
-      fileInput?.click();
     }
   };
 
   const handleBackToUpload = () => {
-    setDirection('backward');
-    setCurrentView('landing');
+    reset();
+    showCreate();
   };
 
   const slideVariants = {
-    enter: (dir: 'forward' | 'backward') => ({
-      x: dir === 'forward' ? '100vw' : '-100vw',
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir: 'forward' | 'backward') => ({
-      x: dir === 'forward' ? '-100vw' : '100vw',
-      opacity: 0,
-    }),
-  };
-
-  const slideTransition = {
-    type: 'tween',
-    ease: [0.25, 1, 0.5, 1], // refined easeOutQuart transition curve
-    duration: 0.5,
+    enter: (dir: 'forward' | 'backward') => ({ x: dir === 'forward' ? '100vw' : '-100vw', opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: 'forward' | 'backward') => ({ x: dir === 'forward' ? '-100vw' : '100vw', opacity: 0 }),
   };
 
   return (
-    <div className={`min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-hidden ${currentView === 'landing' ? 'lg:h-screen lg:overflow-y-hidden' : ''}`}>
+    <div className="min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip">
       <Navbar />
       <main className="relative w-full">
         <AnimatePresence mode="wait" initial={false} custom={direction}>
-          {currentView === 'landing' ? (
-            <motion.div
-              key="landing"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={slideTransition}
-              className="w-full"
-            >
-              <HeroSection
-                onFileSelect={handleFileSelect}
-                onCreateClick={handleCreateClick}
-              />
-            </motion.div>
-          ) : (
-            uploadedImageUrl && (
-              <motion.div
-                key="generator"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={slideTransition}
-                className="w-full"
-              >
-                <GeneratorSection
-                  uploadedImageUrl={uploadedImageUrl}
-                  onBackToUpload={handleBackToUpload}
-                />
-              </motion.div>
-            )
-          )}
+          {currentView === 'landing' && <motion.div key="landing" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.45 }} className="w-full"><HeroSection onFileSelect={handleFileSelect} onCreateClick={showCreate} /></motion.div>}
+          {currentView === 'create' && <motion.div key="create" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }} className="w-full"><CreateUploadPanel isProcessing={isProcessing} error={error} onFileSelect={handleFileSelect} onBack={showLanding} /></motion.div>}
+          {currentView === 'generator' && image && <motion.div key="generator" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.45 }} className="w-full"><GeneratorSection uploadedImageUrl={image.previewUrl} onBackToUpload={handleBackToUpload} /></motion.div>}
         </AnimatePresence>
       </main>
     </div>
   );
 }
-
-
