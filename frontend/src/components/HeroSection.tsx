@@ -8,13 +8,13 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileSelect }) => {
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-12 sm:pt-16 lg:pt-8 pb-16 lg:pb-4 min-h-[650px] md:min-h-[700px] lg:min-h-0 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10 lg:gap-12 bg-[#F6F0E3] relative z-10">
+    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-10 sm:pt-14 lg:pt-8 pb-20 lg:pb-10 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-12 xl:gap-16 bg-[#F6F0E3] relative z-10">
       {/* Content wrapper taking up left ~48% on desktop */}
-      <div className="w-full lg:w-[48%] max-w-[520px] flex flex-col items-start text-left">
+      <div className="w-full lg:w-[48%] max-w-[560px] flex flex-col items-start text-left">
 
         {/* 1. MAIN HEADLINE */}
         <h1
-          className="font-['Calistoga',serif] font-normal uppercase text-[60px] min-[400px]:text-[72px] sm:text-[88px] lg:text-[104px] leading-[0.92] tracking-[-0.015em] select-none"
+          className="font-['Calistoga',serif] font-normal uppercase text-[clamp(3.25rem,16vw,6.5rem)] leading-[0.92] tracking-[-0.015em] select-none"
           aria-label="Frame Your Goa"
         >
           <span className="block text-[#0B6839]">FRAME</span>
@@ -60,9 +60,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileS
         </div>
 
         {/* 3. DESCRIPTION & CREATE BUTTON */}
-        <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-10">
+        <div className="w-full flex flex-col min-[520px]:flex-row items-start min-[520px]:items-center justify-between gap-4 min-[520px]:gap-6 mb-8 sm:mb-10">
           <p className="font-mono font-normal text-[17px] sm:text-[19px] text-[#173F32] leading-[1.55] tracking-[0.01em]">
-            Turn any photo into your<br />
+            Turn any photo into your<span className="hidden min-[520px]:inline"><br /></span>{' '}
             HH Goa 2026 Builder ID.
           </p>
 
@@ -70,9 +70,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileS
             <button
               type="button"
               onClick={onCreateClick}
-              className="w-full sm:w-[210px] h-[52px] bg-[#075B3A] text-[#F6F0E3] rounded-[7px] font-['Oswald'] font-semibold text-[16px] uppercase tracking-[0.025em] flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] hover:-translate-y-[2px] transition-all duration-180 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075B3A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F0E3] shadow-xs"
+              className="w-full min-[380px]:w-[210px] h-[52px] bg-[#075B3A] text-[#F6F0E3] rounded-[7px] font-['Oswald'] font-semibold text-[16px] uppercase tracking-[0.025em] flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] hover:-translate-y-[2px] transition-all duration-180 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075B3A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F0E3] shadow-xs"
             >
-              <span>CREATE MY FRAME</span>
+              <span>CREATE YOUR ID</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
@@ -87,25 +87,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileS
         </div>
 
         {/* 4. THREE BENEFITS */}
-        <div className="w-full grid grid-cols-3 gap-3 sm:gap-6 mb-8 sm:mb-10">
+        <div className="w-full grid grid-cols-1 min-[380px]:grid-cols-3 gap-5 min-[380px]:gap-3 sm:gap-6 mb-8 sm:mb-10">
           {/* INSTANT */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-row min-[380px]:flex-col items-center min-[380px]:items-start gap-3 min-[380px]:gap-0">
             <div className="w-[40px] h-[40px] rounded-full border-[1.5px] border-[#F05A68] flex items-center justify-center mb-2.5 text-[#F05A68]">
               {/* Lightning Bolt Icon */}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
             </div>
-            <h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">
-              INSTANT
-            </h3>
-            <p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">
-              Ready in<br />seconds
-            </p>
+            <div><h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">INSTANT</h3><p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">Ready in<span className="hidden min-[380px]:inline"><br /></span> seconds</p></div>
           </div>
 
           {/* DOWNLOAD */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-row min-[380px]:flex-col items-center min-[380px]:items-start gap-3 min-[380px]:gap-0">
             <div className="w-[40px] h-[40px] rounded-full border-[1.5px] border-[#F2A900] flex items-center justify-center mb-2.5 text-[#F2A900]">
               {/* Download Tray Icon */}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -114,16 +109,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileS
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </div>
-            <h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">
-              DOWNLOAD
-            </h3>
-            <p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">
-              High quality<br />image
-            </p>
+            <div><h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">DOWNLOAD</h3><p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">High quality<span className="hidden min-[380px]:inline"><br /></span> image</p></div>
           </div>
 
           {/* SHARE TO X */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-row min-[380px]:flex-col items-center min-[380px]:items-start gap-3 min-[380px]:gap-0">
             <div className="w-[40px] h-[40px] rounded-full border-[1.5px] border-[#6B9142] flex items-center justify-center mb-2.5 text-[#6B9142]">
               {/* Upward / Share Icon */}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,19 +121,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileS
                 <polyline points="5 12 12 5 19 12" />
               </svg>
             </div>
-            <h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">
-              SHARE TO X
-            </h3>
-            <p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">
-              1-click<br />share
-            </p>
+            <div><h3 className="font-['Oswald'] font-semibold uppercase text-[14px] sm:text-[15px] tracking-[0.02em] text-[#173F32] leading-tight mb-1">SHARE TO X</h3><p className="font-mono text-[12px] sm:text-[13px] text-[#173F32] leading-[1.55]">1-click<span className="hidden min-[380px]:inline"><br /></span> share</p></div>
           </div>
         </div>
 
       </div>
 
       {/* Right Upload Card Zone */}
-      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-10 sm:mt-14 lg:mt-16">
+      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-0">
         <UploadFrame onFileSelect={onFileSelect} />
       </div>
     </section>

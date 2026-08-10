@@ -18,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
 
   return (
     <>
-      <header className="w-full pt-8 px-4 sm:px-[40px] max-w-[1440px] mx-auto bg-transparent relative z-20">
+      <header className="w-full pt-4 sm:pt-6 lg:pt-8 px-3 min-[380px]:px-4 sm:px-[40px] max-w-[1440px] mx-auto bg-transparent relative z-20">
         <nav
           aria-label="Main Navigation"
           className="w-full flex items-start justify-between bg-transparent"
@@ -34,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               <img
                 src="/assets/hacker-house-goa-logo.svg"
                 alt="Hacker House Goa 2026"
-                className="w-[110px] sm:w-[125px] md:w-[140px] h-auto max-h-[115px] object-contain block"
+                className="w-[88px] min-[380px]:w-[104px] sm:w-[125px] md:w-[140px] h-auto max-h-[115px] object-contain block"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   const target = e.currentTarget;
@@ -67,12 +67,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
           </div>
 
           {/* RIGHT: Two Navigation Buttons */}
-          <div className="flex items-center gap-3 sm:gap-6 md:gap-8 shrink-0">
+          <div className="flex items-center gap-1.5 min-[380px]:gap-2.5 sm:gap-6 md:gap-8 shrink-0">
             {/* ABOUT US BUTTON */}
             <button
               type="button"
               onClick={handleAboutClick}
-              className="h-[48px] px-3.5 sm:px-6 bg-transparent border border-[#173F32] rounded-[8px] font-mono text-[12px] sm:text-[13px] font-semibold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 active:bg-[#173F32]/10 transition-colors duration-200 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#173F32]"
+              className="h-10 min-[380px]:h-11 sm:h-[48px] px-2 min-[380px]:px-3.5 sm:px-6 bg-transparent border border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[13px] font-semibold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 active:bg-[#173F32]/10 transition-colors duration-200 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#173F32]"
             >
               ABOUT US
             </button>
@@ -82,10 +82,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               href="https://hhgoa.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="h-[48px] px-3.5 sm:px-6 bg-[#075B3A] text-[#F6F0E3] border-none rounded-[8px] font-mono text-[12px] sm:text-[13px] font-semibold tracking-[0.03em] hover:bg-[#064a2f] active:bg-[#053d26] transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075B3A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F0E3]"
+              className="h-10 min-[380px]:h-11 sm:h-[48px] px-2 min-[380px]:px-3.5 sm:px-6 bg-[#075B3A] text-[#F6F0E3] border-none rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[13px] font-semibold tracking-[0.03em] hover:bg-[#064a2f] active:bg-[#053d26] transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1 min-[380px]:gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075B3A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F0E3]"
             >
               <span>VISIT HHGOA.COM</span>
-              <ArrowUpRight className="w-4 h-4 stroke-[1.5] shrink-0" aria-hidden="true" />
+              <ArrowUpRight className="w-3 h-3 min-[380px]:w-4 min-[380px]:h-4 stroke-[1.5] shrink-0" aria-hidden="true" />
             </a>
           </div>
         </nav>
