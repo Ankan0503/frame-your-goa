@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, X } from 'lucide-react';
+import { ArrowUpRight, X, Github, Linkedin } from 'lucide-react';
 
 interface NavbarProps {
   onAboutClick?: () => void;
@@ -123,27 +123,67 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               ABOUT US
             </h2>
 
-            <p className="text-[13px] leading-relaxed text-[#173F32]/90 mb-4">
-              Hacker House Goa is the premier sanctuary for builders, founders, and creators in India.
-              Blending the relaxed, nostalgic warmth of Goa with high-density technical signal.
+            <p className="text-[13px] leading-relaxed text-[#173F32]/90 mb-6">
+              We are a team of 2 from Heritage Institute of Technology, Kolkata.
             </p>
 
-            <div className="bg-[#173F32]/5 border border-[#173F32]/15 rounded-[8px] p-4 text-[12px] space-y-2 mb-6">
-              <div className="flex justify-between">
-                <span className="text-[#173F32]/70">LOCATION:</span>
-                <span className="font-semibold text-[#173F32]">Goa, India</span>
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              {/* Ankan Giri Card */}
+              <div className="bg-[#173F32]/5 border border-[#173F32]/15 rounded-[8px] p-4">
+                <h3 className="font-['Oswald'] font-semibold text-[16px] text-[#173F32] mb-3">
+                  Ankan Giri
+                </h3>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://github.com/Ankan0503"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-[#173F32]/20 flex items-center justify-center text-[#173F32] hover:bg-[#173F32]/10 hover:text-[#075B3A] transition-colors"
+                    aria-label="Ankan Giri GitHub"
+                  >
+                    <Github className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/ankan-giri-71a34935a"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-[#173F32]/20 flex items-center justify-center text-[#173F32] hover:bg-[#173F32]/10 hover:text-[#075B3A] transition-colors"
+                    aria-label="Ankan Giri LinkedIn"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#173F32]/70">EDITION:</span>
-                <span className="font-semibold text-[#173F32]">Frame in Goa 2026</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#173F32]/70">MOTTO:</span>
-                <span className="font-semibold text-[#075B3A]">Less Noise. More Signal.</span>
+
+              {/* Sayan Sinha Card */}
+              <div className="bg-[#173F32]/5 border border-[#173F32]/15 rounded-[8px] p-4">
+                <h3 className="font-['Oswald'] font-semibold text-[16px] text-[#173F32] mb-3">
+                  Sayan Sinha
+                </h3>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://github.com/Sayan260106"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-[#173F32]/20 flex items-center justify-center text-[#173F32] hover:bg-[#173F32]/10 hover:text-[#075B3A] transition-colors"
+                    aria-label="Sayan Sinha GitHub"
+                  >
+                    <Github className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/sayan-sinha-300a20363"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-[#173F32]/20 flex items-center justify-center text-[#173F32] hover:bg-[#173F32]/10 hover:text-[#075B3A] transition-colors"
+                    aria-label="Sayan Sinha LinkedIn"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsAboutModalOpen(false)}
@@ -151,15 +191,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               >
                 CLOSE
               </button>
-              <a
-                href="https://hhgoa.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-[40px] px-5 bg-[#075B3A] text-[#F6F0E3] rounded-[8px] text-[12px] font-semibold hover:bg-[#064a2f] transition-colors cursor-pointer flex items-center gap-1.5"
-              >
-                VISIT HHGOA.COM
-                <ArrowUpRight className="w-3.5 h-3.5 stroke-[1.5]" />
-              </a>
             </div>
           </div>
         </div>
