@@ -108,6 +108,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
         {/* Hidden File Input */}
         <input
           type="file"
+          id="landing-file-input"
           ref={fileInputRef}
           onChange={handleFileChange}
           accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif"
