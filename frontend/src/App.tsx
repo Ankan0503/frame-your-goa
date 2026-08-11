@@ -14,6 +14,27 @@ export default function App() {
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const { image, error, isProcessing, selectFile, reset } = useImageUpload();
 
+  // Control scroll: lock on landing (both axes), unlock on create/generator.
+  // Must set overflow on both <html> and <body> since <html> is the real scroll container.
+  useEffect(() => {
+    const isLanding = currentView === 'landing';
+    const lock = isLanding ? 'hidden' : '';
+    document.documentElement.style.overflow = lock;
+    document.documentElement.style.overflowX = lock;
+    document.documentElement.style.overflowY = lock;
+    document.body.style.overflow = lock;
+    document.body.style.overflowX = lock;
+    document.body.style.overflowY = lock;
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overflowX = '';
+      document.documentElement.style.overflowY = '';
+      document.body.style.overflow = '';
+      document.body.style.overflowX = '';
+      document.body.style.overflowY = '';
+    };
+  }, [currentView]);
+
   useEffect(() => {
     const onPopState = () => {
       setDirection('backward');
@@ -56,7 +77,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip">
+    <div className="min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise">
       <Navbar />
       <main className="relative w-full">
         <AnimatePresence mode="wait" initial={false} custom={direction}>

@@ -73,27 +73,27 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
   return (
     <div className="relative overflow-visible w-full max-w-[320px] min-[380px]:max-w-[340px] sm:max-w-[420px] lg:w-[min(420px,36vw)] xl:w-[420px] select-none mx-auto lg:mx-0">
       {/* DECORATIVE GOA BACKGROUND (BEHIND UPLOAD CARD) */}
-      <picture>
+      <picture className="absolute z-0 pointer-events-none top-[-55px] sm:top-[-70px] lg:top-[-80px] left-1/2 -translate-x-1/2 w-[480px] min-[400px]:w-[540px] sm:w-[660px] lg:w-[760px] block">
         <source type="image/avif" srcSet="/assets/goa-background-decor.avif" />
         <img
           src="/assets/goa-background-decor.avif"
           alt=""
           aria-hidden="true"
           referrerPolicy="no-referrer"
-          className="absolute z-0 pointer-events-none object-contain max-w-none top-[-55px] sm:top-[-70px] lg:top-[-80px] left-1/2 -translate-x-1/2 w-[480px] min-[400px]:w-[540px] sm:w-[660px] lg:w-[760px]"
+          className="w-full h-auto object-contain pointer-events-none"
           loading="lazy"
         />
       </picture>
 
       {/* DECORATIVE CATHEDRAL TOP (BEHIND CARD, ABOVE GOA BACKGROUND) */}
-      <picture>
+      <picture className="absolute z-1 pointer-events-none left-1/2 -translate-x-1/2 top-[-100px] min-[400px]:top-[-120px] sm:top-[-170px] lg:top-[-275px] w-[220px] min-[400px]:w-[270px] sm:w-[350px] lg:w-[420px] scale-80 origin-bottom block">
         <source type="image/avif" srcSet="/assets/goa-cathedral-top-bell-transparent.avif" />
         <img
           src="/assets/goa-cathedral-top-bell-transparent.avif"
           alt=""
           aria-hidden="true"
           referrerPolicy="no-referrer"
-          className="absolute z-1 pointer-events-none object-contain left-1/2 -translate-x-1/2 top-[-100px] min-[400px]:top-[-120px] sm:top-[-170px] lg:top-[-275px] w-[220px] min-[400px]:w-[270px] sm:w-[350px] lg:w-[420px] max-w-none scale-80 origin-bottom"
+          className="w-full h-auto object-contain pointer-events-none"
           loading="lazy"
         />
       </picture>
