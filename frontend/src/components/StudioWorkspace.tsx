@@ -308,10 +308,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   // FULL SCREEN RESULT PAGE (PICTURE 2 FLOW) WHEN GENERATED
   if (isGenerated) {
     return (
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-4 pb-20 relative z-10 animate-fade-in">
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-2 pb-4 relative z-10 animate-fade-in lg:h-full lg:overflow-hidden lg:flex lg:flex-col">
         
         {/* RESULT PAGE HEADER / NAVBAR */}
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-8 pb-4 border-b-2 border-[#173F32]/15">
+        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-3 border-b-2 border-[#173F32]/15 shrink-0">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -355,10 +355,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* MAIN RESULT GRID */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_340px] gap-8 items-start mb-12">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)_340px] gap-8 flex-1 min-h-0 lg:grid-rows-1 mb-6 lg:mb-0">
           
           {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
-          <div className="flex flex-col justify-between gap-6 h-full min-h-[420px]">
+          <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0">
             <div>
               <div className="flex flex-col font-['Calistoga',serif] leading-[1.02] tracking-tight">
                 <span className="text-[38px] sm:text-[46px] text-[#173F32]">YOUR GOA</span>
@@ -405,7 +405,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           </div>
 
           {/* CENTER COLUMN: PREVIEW CARD & PAGINATION DOTS */}
-          <div className="flex flex-col items-center justify-center w-full min-h-[480px]">
+          <div className="flex flex-col items-center justify-center w-full min-h-[400px] lg:min-h-0 h-full">
             <div className="w-full flex items-center justify-center">
               {activeMode === 'builder' && (
                 <BuilderIdCardPreview

@@ -25,8 +25,11 @@ export const BuilderIdCardPreview: React.FC<BuilderIdCardPreviewProps> = ({
       {/* 3D FLOATING ID PASS CARD */}
       <div
         id="builder-id-preview-card"
-        className="w-full max-w-[640px] aspect-[1.42/1] bg-[#FAF6EE] rounded-[24px] p-4 sm:p-5 relative overflow-hidden transition-all duration-300 border border-[#E0D8C8] flex flex-col justify-between"
+        className="bg-[#FAF6EE] rounded-[24px] p-4 sm:p-5 relative overflow-hidden transition-all duration-300 border border-[#E0D8C8] flex flex-col justify-between"
         style={{
+          width: 'min(100%, calc((100dvh - 300px) * 1.42))',
+          maxWidth: '560px',
+          aspectRatio: '1.42 / 1',
           boxShadow: '0 20px 45px rgba(23, 63, 50, 0.16), 0 8px 20px rgba(0, 0, 0, 0.07)',
         }}
       >

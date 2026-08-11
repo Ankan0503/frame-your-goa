@@ -12,11 +12,16 @@ export const TeamFramePreview: React.FC<TeamFramePreviewProps> = ({ data, pfpSty
   const count = Math.min(Math.max(builders.length, 1), 3);
 
   return (
-    <div className="w-full max-w-[800px] mx-auto p-2 sm:p-4">
+    <div className="w-full max-w-[800px] mx-auto p-2 sm:p-4 h-full flex items-center justify-center">
       {/* POSTER CONTAINER */}
       <div
-        className="w-full aspect-[4/3] bg-[#F6F0E3] border-[6px] sm:border-[10px] border-[#173F32] rounded-[24px] p-4 sm:p-6 shadow-2xl flex flex-col justify-between select-none relative overflow-hidden"
-        style={{ boxShadow: '0 25px 60px rgba(23, 63, 50, 0.2)' }}
+        className="bg-[#F6F0E3] border-[6px] sm:border-[10px] border-[#173F32] rounded-[24px] p-4 sm:p-6 shadow-2xl flex flex-col justify-between select-none relative overflow-hidden"
+        style={{
+          width: 'min(100%, calc((100dvh - 300px) * 1.3333))',
+          maxWidth: '800px',
+          aspectRatio: '4 / 3',
+          boxShadow: '0 25px 60px rgba(23, 63, 50, 0.2)',
+        }}
       >
         {/* TOP HEADER BANNER */}
         <div className="w-full bg-[#173F32] text-[#F6F0E3] rounded-[12px] p-2.5 sm:p-3.5 flex items-center justify-between mb-3 shadow-sm">

@@ -67,12 +67,12 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip ${currentView === 'landing' ? 'lg:h-screen lg:overflow-y-hidden' : ''}`}>
+    <div className={`min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip ${currentView === 'landing' ? 'lg:h-screen lg:overflow-y-hidden' : ''} ${currentView === 'studio' ? 'lg:h-screen lg:flex lg:flex-col' : ''}`}>
       <Navbar
         onCreateIdClick={() => openStudio('builder')}
         onCreateTeamClick={() => openStudio('team')}
       />
-      <main className="relative w-full">
+      <main className={`relative w-full ${currentView === 'studio' ? 'lg:flex-1 lg:min-h-0' : ''}`}>
         <AnimatePresence mode="wait" initial={false} custom={direction}>
           {currentView === 'landing' && (
             <motion.div
@@ -102,7 +102,7 @@ export default function App() {
               animate="center"
               exit="exit"
               transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
-              className="w-full"
+              className="w-full lg:h-full"
             >
               <StudioWorkspace
                 initialMode={studioMode}
