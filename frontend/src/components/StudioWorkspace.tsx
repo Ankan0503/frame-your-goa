@@ -48,6 +48,21 @@ import {
 
 export type WorkspaceMode = 'builder' | 'team';
 
+const slideVariants = {
+  enter: (dir: 'forward' | 'backward') => ({
+    x: dir === 'forward' ? '100%' : '-100%',
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (dir: 'forward' | 'backward') => ({
+    x: dir === 'forward' ? '-100%' : '100%',
+    opacity: 0,
+  }),
+};
+
 interface StudioWorkspaceProps {
   initialMode?: WorkspaceMode | string;
   initialPhotoUrl?: string;
@@ -301,7 +316,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   };
 
   // FULL SCREEN RESULT PAGE (PICTURE 2 FLOW) WHEN GENERATED
-  if (isGenerated) {
+  const renderResultView = () => {
     return (
       <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-2 pb-4 relative z-10 animate-fade-in lg:h-full lg:overflow-hidden lg:flex lg:flex-col">
         
@@ -320,81 +335,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* MAIN RESULT GRID */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)_340px] gap-8 flex-1 min-h-0 lg:grid-rows-1 mb-6 lg:mb-0">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_340px] gap-8 flex-1 min-h-0 lg:grid-rows-1 mb-6 lg:mb-0">
           
-          {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
-          <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0">
-            <div>
-              <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.92] tracking-[-0.015em]">
-                <span className="text-[48px] sm:text-[60px] text-[#0B6839]">YOUR GOA</span>
-                <span className="text-[48px] sm:text-[60px] text-[#0B6839]">FRAME</span>
-                <span className="text-[48px] sm:text-[60px] text-[#F05A68]">IS READY!</span>
-              </div>
-
-              {/* DECORATIVE OCEAN WAVE (like landing page) */}
-              <svg
-                width="170"
-                height="55"
-                viewBox="0 0 170 55"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="block overflow-visible mt-3"
-                aria-hidden="true"
-              >
-                <path
-                  d="M 5 32 C 18 36, 32 32, 48 24 C 64 16, 78 7, 92 7 C 102 7, 108 11, 102 18 C 96 25, 87 28, 92 33 C 98 38, 115 35, 128 27 C 137 21, 142 15, 145 22 C 141 24, 139 27, 142 29 C 146 31, 152 29, 158 31 C 162 32, 166 31, 170 32"
-                  stroke="#6B9142"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 40 33 C 50 28, 62 26, 70 29 C 78 32, 73 37, 68 39 C 63 41, 62 36, 68 32"
-                  stroke="#6B9142"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 148 35 C 154 33, 160 36, 168 35"
-                  stroke="#6B9142"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            {/* VINTAGE STAMP & AZULEJO TILES DECORATION */}
-            <div className="flex flex-col gap-4 mt-auto mb-6">
-              <div className="flex items-center gap-3">
-                {/* VINTAGE CIRCULAR POSTMARK STAMP */}
-                <div className="w-18 h-18 rounded-full border-2 border-dashed border-[#075B3A]/60 flex flex-col items-center justify-center p-2 text-center transform rotate-[-8deg] bg-[#F2E8D5] shadow-xs shrink-0">
-                  <span className="font-mono text-[8px] font-bold text-[#075B3A] leading-tight">MADE OF</span>
-                  <span className="font-['Oswald'] font-bold text-[14px] text-[#173F32] leading-none my-0.5">GOA</span>
-                  <span className="font-mono text-[8px] font-bold text-[#F05A68] leading-tight">2026</span>
-                </div>
-
-                <div className="flex flex-col">
-                  <span className="font-mono text-[10px] font-bold text-[#075B3A] uppercase">CONFIRMED PASS</span>
-                  <span className="font-mono text-[9px] text-[#173F32]/70">HHGOA-2026-VERIFIED</span>
-                </div>
-              </div>
-
-              {/* AZULEJO TILES PATTERN WATERMARK */}
-              <div className="w-36 h-24 bg-gradient-to-tr from-[#1B4B82]/20 to-transparent rounded-[14px] border border-[#1B4B82]/30 p-2 relative overflow-hidden flex items-center justify-center opacity-85">
-                <div className="grid grid-cols-2 gap-2 opacity-35">
-                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
-                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
-                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
-                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* CENTER COLUMN: PREVIEW CARD & PAGINATION DOTS */}
-          <div className="flex flex-col items-center justify-center w-full min-h-[400px] lg:min-h-0 h-full">
+          <div className="flex flex-col items-center justify-start w-full min-h-[400px] lg:min-h-0 h-full lg:col-start-2">
             <div className="w-full flex items-center justify-center">
               {activeMode === 'builder' && (
                 <BuilderIdCardPreview
@@ -421,7 +365,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           </div>
 
           {/* RIGHT COLUMN: ACTION PANELS */}
-          <div className="flex flex-col gap-5 w-full">
+          <div className="flex flex-col gap-5 w-full lg:col-start-3">
             
             {/* CARD 1: YOUR FRAME IS READY */}
             <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3.5">
@@ -549,6 +493,77 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
           </div>
 
+          {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
+          <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0 lg:col-start-1">
+            <div>
+              <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.9] tracking-[-0.015em]">
+                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">YOUR GOA</span>
+                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">FRAME</span>
+                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#F05A68]">IS READY!</span>
+              </div>
+
+              {/* DECORATIVE OCEAN WAVE (like landing page) */}
+              <svg
+                width="170"
+                height="55"
+                viewBox="0 0 170 55"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="block overflow-visible mt-3"
+                aria-hidden="true"
+              >
+                <path
+                  d="M 5 32 C 18 36, 32 32, 48 24 C 64 16, 78 7, 92 7 C 102 7, 108 11, 102 18 C 96 25, 87 28, 92 33 C 98 38, 115 35, 128 27 C 137 21, 142 15, 145 22 C 141 24, 139 27, 142 29 C 146 31, 152 29, 158 31 C 162 32, 166 31, 170 32"
+                  stroke="#6B9142"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 40 33 C 50 28, 62 26, 70 29 C 78 32, 73 37, 68 39 C 63 41, 62 36, 68 32"
+                  stroke="#6B9142"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 148 35 C 154 33, 160 36, 168 35"
+                  stroke="#6B9142"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            {/* VINTAGE STAMP & AZULEJO TILES DECORATION */}
+            <div className="flex flex-col gap-4 mt-auto mb-6">
+              <div className="flex items-center gap-3">
+                {/* VINTAGE CIRCULAR POSTMARK STAMP */}
+                <div className="w-18 h-18 rounded-full border-2 border-dashed border-[#075B3A]/60 flex flex-col items-center justify-center p-2 text-center transform rotate-[-8deg] bg-[#F2E8D5] shadow-xs shrink-0">
+                  <span className="font-mono text-[8px] font-bold text-[#075B3A] leading-tight">MADE OF</span>
+                  <span className="font-['Oswald'] font-bold text-[14px] text-[#173F32] leading-none my-0.5">GOA</span>
+                  <span className="font-mono text-[8px] font-bold text-[#F05A68] leading-tight">2026</span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] font-bold text-[#075B3A] uppercase">CONFIRMED PASS</span>
+                  <span className="font-mono text-[9px] text-[#173F32]/70">HHGOA-2026-VERIFIED</span>
+                </div>
+              </div>
+
+              {/* AZULEJO TILES PATTERN WATERMARK */}
+              <div className="w-36 h-24 bg-gradient-to-tr from-[#1B4B82]/20 to-transparent rounded-[14px] border border-[#1B4B82]/30 p-2 relative overflow-hidden flex items-center justify-center opacity-85">
+                <div className="grid grid-cols-2 gap-2 opacity-35">
+                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                  <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* SHARE MODAL */}
@@ -564,10 +579,11 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         )}
       </section>
     );
-  }
+  };
 
-  return (
-    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-4 pb-20 relative z-10">
+  const renderEditorView = () => {
+    return (
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-4 pb-20 relative z-10">
       
       {/* 1. TOP HEADER NAVIGATION & MODE SELECTOR TABS */}
       <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-8 pb-4 border-b-2 border-[#173F32]/15">
@@ -622,11 +638,207 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
       </div>
 
-      {/* 2. UNIFIED 3-COLUMN WORKSPACE GRID */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_300px] gap-6 items-start mb-16">
+      {/* 2. WORKSPACE GRID: PREVIEW CARD CENTER, OPTIONS ON RIGHT */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(340px,1fr)_minmax(0,640px)_minmax(340px,1fr)] gap-6 items-start mb-16">
         
-        {/* LEFT COLUMN: UPLOAD & CONTEXTUAL CUSTOMIZATION CONTROLS */}
-        <div className="flex flex-col gap-5 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs">
+        {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
+        <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0 lg:col-start-1">
+          <div>
+            <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.9] tracking-[-0.015em]">
+              <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">YOUR GOA</span>
+              <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">IS</span>
+              <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#F05A68]">COOKING!</span>
+            </div>
+
+            {/* DECORATIVE OCEAN WAVE */}
+            <svg
+              width="170"
+              height="55"
+              viewBox="0 0 170 55"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="block overflow-visible mt-3"
+              aria-hidden="true"
+            >
+              <path
+                d="M 5 32 C 18 36, 32 32, 48 24 C 64 16, 78 7, 92 7 C 102 7, 108 11, 102 18 C 96 25, 87 28, 92 33 C 98 38, 115 35, 128 27 C 137 21, 142 15, 145 22 C 141 24, 139 27, 142 29 C 146 31, 152 29, 158 31 C 162 32, 166 31, 170 32"
+                stroke="#6B9142"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 40 33 C 50 28, 62 26, 70 29 C 78 32, 73 37, 68 39 C 63 41, 62 36, 68 32"
+                stroke="#6B9142"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 148 35 C 154 33, 160 36, 168 35"
+                stroke="#6B9142"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          {/* VINTAGE STAMP & AZULEJO TILES DECORATION */}
+          <div className="flex flex-col gap-4 mt-auto mb-6">
+            <div className="flex items-center gap-3">
+              {/* VINTAGE CIRCULAR POSTMARK STAMP */}
+              <div className="w-18 h-18 rounded-full border-2 border-dashed border-[#075B3A]/60 flex flex-col items-center justify-center p-2 text-center transform rotate-[-8deg] bg-[#F2E8D5] shadow-xs shrink-0">
+                <span className="font-mono text-[8px] font-bold text-[#075B3A] leading-tight">MADE OF</span>
+                <span className="font-['Oswald'] font-bold text-[14px] text-[#173F32] leading-none my-0.5">GOA</span>
+                <span className="font-mono text-[8px] font-bold text-[#F05A68] leading-tight">2026</span>
+              </div>
+
+              <div className="flex flex-col">
+                <span className="font-mono text-[10px] font-bold text-[#075B3A] uppercase">DESIGN IN PROGRESS</span>
+                <span className="font-mono text-[9px] text-[#173F32]/70">HHGOA-2026-WORKSPACE</span>
+              </div>
+            </div>
+
+            {/* AZULEJO TILES PATTERN WATERMARK */}
+            <div className="w-36 h-24 bg-gradient-to-tr from-[#1B4B82]/20 to-transparent rounded-[14px] border border-[#1B4B82]/30 p-2 relative overflow-hidden flex items-center justify-center opacity-85">
+              <div className="grid grid-cols-2 gap-2 opacity-35">
+                <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+                <div className="w-8 h-8 border-2 border-[#1B4B82] rotate-45" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CENTER COLUMN: LIVE PREVIEW CARD & GENERATE BUTTON BELOW */}
+        <div className="flex flex-col gap-5 w-full lg:col-start-2">
+          
+          {/* LIVE PREVIEW CARD */}
+          <div className="flex flex-col items-center justify-center w-full">
+            {activeMode === 'builder' && (
+              <BuilderIdCardPreview
+                formData={builderForm}
+                photoUrl={photoUrl}
+                cropResult={cropResult}
+                pfpStyle={pfpStyle}
+                pfpRatio={pfpRatio}
+              />
+            )}
+
+            {activeMode === 'team' && (
+              <TeamFramePreview
+                data={{
+                  teamName,
+                  projectName,
+                  layout: teamLayout,
+                  builders: teamMembers,
+                }}
+                pfpStyle={pfpStyle}
+              />
+            )}
+          </div>
+
+          {/* ACTION CONTROLS & QUICK ACTIONS */}
+          {/* PRIMARY ACTION: GENERATE */}
+          {!isGenerated ? (
+            <button
+              type="button"
+              onClick={() => setIsGenerated(true)}
+              className="btn-tactile w-full max-w-[300px] mx-auto h-[52px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
+            >
+              <Sparkles className="w-5 h-5 text-[#F2A900]" />
+              <span>GENERATE NOW</span>
+            </button>
+          ) : (
+            <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3.5">
+              
+              {/* EDIT AGAIN OPTION */}
+              <button
+                type="button"
+                onClick={() => setIsGenerated(false)}
+                className="btn-tactile w-full h-[40px] bg-[#EDE5D4] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/10 mb-1"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-[#075B3A]" />
+                <span>EDIT AGAIN / MAKE CHANGES</span>
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#F05A68] text-[#F6F0E3] flex items-center justify-center shrink-0 shadow-xs">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-['Oswald'] font-bold text-[16px] text-[#173F32] uppercase">
+                    YOUR FRAME IS READY
+                  </span>
+                  <span className="font-mono text-[11px] text-[#173F32]/70">
+                    Download, share and show off your Goa spirit.
+                  </span>
+                </div>
+              </div>
+
+              {/* DOWNLOAD HD IMAGE */}
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="btn-tactile w-full h-[48px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[15px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839]"
+              >
+                <Download className="w-4 h-4 text-[#F2A900]" />
+                <span>{downloadSuccess ? 'DOWNLOADED HD!' : 'DOWNLOAD HD IMAGE'}</span>
+              </button>
+
+              {/* SHARE TO X */}
+              <button
+                type="button"
+                onClick={handleOpenShare}
+                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+              >
+                <Share2 className="w-3.5 h-3.5 text-[#075B3A]" />
+                <span>POST ON X NOW</span>
+              </button>
+
+              {/* SHARE TO INSTAGRAM */}
+              <button
+                type="button"
+                onClick={handleOpenShare}
+                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+              >
+                <Instagram className="w-3.5 h-3.5 text-[#F05A68]" />
+                <span>SHARE TO INSTAGRAM</span>
+              </button>
+
+              {/* COPY SHARE LINK */}
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+              >
+                <Copy className="w-3.5 h-3.5 text-[#075B3A]" />
+                <span>{copySuccess ? 'LINK COPIED!' : 'COPY LINK'}</span>
+              </button>
+
+              {/* CALENDAR BADGE */}
+              <div className="w-full bg-[#F2E8D5] border border-[#173F32]/20 rounded-[12px] p-3 mt-1 flex items-center justify-between font-mono text-[11px] text-[#173F32]">
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="w-4 h-4 text-[#075B3A]" />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-[10px] text-[#075B3A] uppercase">EVENT DATE</span>
+                    <span className="font-bold">28 — 31 OCT 2026</span>
+                    <span className="text-[10px] text-[#173F32]/70">Candolim, Goa</span>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-[#075B3A]" />
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* RIGHT COLUMN: ALL CUSTOMIZATION OPTIONS (RIGHT-ALIGNED IN COLUMN 3) */}
+        <div className="flex flex-col gap-5 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs lg:col-start-3 lg:justify-self-end lg:w-[min(340px,100%)]">
           
           {/* PHOTO UPLOAD BOX */}
           <div className="flex flex-col gap-2">
@@ -1011,130 +1223,6 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
         </div>
 
-        {/* CENTER COLUMN: REAL-TIME CARD PREVIEW */}
-        <div className="flex flex-col items-center justify-center w-full min-h-[460px]">
-          {activeMode === 'builder' && (
-            <BuilderIdCardPreview
-              formData={builderForm}
-              photoUrl={photoUrl}
-              cropResult={cropResult}
-              pfpStyle={pfpStyle}
-              pfpRatio={pfpRatio}
-            />
-          )}
-
-          {activeMode === 'team' && (
-            <TeamFramePreview
-              data={{
-                teamName,
-                projectName,
-                layout: teamLayout,
-                builders: teamMembers,
-              }}
-              pfpStyle={pfpStyle}
-            />
-          )}
-        </div>
-
-        {/* RIGHT COLUMN: ACTION CONTROLS & QUICK ACTIONS */}
-        <div className="flex flex-col gap-5 w-full">
-          
-          {/* PRIMARY ACTION: GENERATE */}
-          {!isGenerated ? (
-            <button
-              type="button"
-              onClick={() => setIsGenerated(true)}
-              className="btn-tactile w-full h-[52px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
-            >
-              <Sparkles className="w-5 h-5 text-[#F2A900]" />
-              <span>GENERATE NOW</span>
-            </button>
-          ) : (
-            <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3.5">
-              
-              {/* EDIT AGAIN OPTION */}
-              <button
-                type="button"
-                onClick={() => setIsGenerated(false)}
-                className="btn-tactile w-full h-[40px] bg-[#EDE5D4] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/10 mb-1"
-              >
-                <Edit3 className="w-3.5 h-3.5 text-[#075B3A]" />
-                <span>EDIT AGAIN / MAKE CHANGES</span>
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#F05A68] text-[#F6F0E3] flex items-center justify-center shrink-0 shadow-xs">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="font-['Oswald'] font-bold text-[16px] text-[#173F32] uppercase">
-                    YOUR FRAME IS READY
-                  </span>
-                  <span className="font-mono text-[11px] text-[#173F32]/70">
-                    Download, share and show off your Goa spirit.
-                  </span>
-                </div>
-              </div>
-
-              {/* DOWNLOAD HD IMAGE */}
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="btn-tactile w-full h-[48px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[15px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839]"
-              >
-                <Download className="w-4 h-4 text-[#F2A900]" />
-                <span>{downloadSuccess ? 'DOWNLOADED HD!' : 'DOWNLOAD HD IMAGE'}</span>
-              </button>
-
-              {/* SHARE TO X */}
-              <button
-                type="button"
-                onClick={handleOpenShare}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-              >
-                <Share2 className="w-3.5 h-3.5 text-[#075B3A]" />
-                <span>POST ON X NOW</span>
-              </button>
-
-              {/* SHARE TO INSTAGRAM */}
-              <button
-                type="button"
-                onClick={handleOpenShare}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-              >
-                <Instagram className="w-3.5 h-3.5 text-[#F05A68]" />
-                <span>SHARE TO INSTAGRAM</span>
-              </button>
-
-              {/* COPY SHARE LINK */}
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-              >
-                <Copy className="w-3.5 h-3.5 text-[#075B3A]" />
-                <span>{copySuccess ? 'LINK COPIED!' : 'COPY LINK'}</span>
-              </button>
-
-              {/* CALENDAR BADGE */}
-              <div className="w-full bg-[#F2E8D5] border border-[#173F32]/20 rounded-[12px] p-3 mt-1 flex items-center justify-between font-mono text-[11px] text-[#173F32]">
-                <div className="flex items-center gap-2.5">
-                  <Calendar className="w-4 h-4 text-[#075B3A]" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-[10px] text-[#075B3A] uppercase">EVENT DATE</span>
-                    <span className="font-bold">28 — 31 OCT 2026</span>
-                    <span className="text-[10px] text-[#173F32]/70">Candolim, Goa</span>
-                  </div>
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-[#075B3A]" />
-              </div>
-
-            </div>
-          )}
-
-        </div>
-
       </div>
 
       {/* SHARE MODAL */}
@@ -1149,5 +1237,42 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         />
       )}
     </section>
+    );
+  };
+
+  const direction = isGenerated ? 'forward' : 'backward';
+
+  return (
+    <div className="w-full lg:h-full relative overflow-hidden">
+      <AnimatePresence mode="wait" initial={false} custom={direction}>
+        {isGenerated ? (
+          <motion.div
+            key="result-view"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
+            className="w-full lg:h-full flex flex-col"
+          >
+            {renderResultView()}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="editor-view"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
+            className="w-full"
+          >
+            {renderEditorView()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };

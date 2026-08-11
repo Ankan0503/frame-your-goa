@@ -9,12 +9,12 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreateTeamClick, onFileSelect }) => {
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-10 sm:pt-14 lg:pt-8 pb-20 lg:pb-10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 xl:gap-16 bg-[#F6F0E3] relative z-10">
+    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-8 sm:pt-10 lg:pt-6 pb-16 lg:pb-8 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10 xl:gap-12 bg-[#F6F0E3] relative z-10">
       {/* Content wrapper taking up left ~48% on desktop */}
       <div className="w-full lg:w-[48%] max-w-[560px] flex flex-col items-start text-left">
         {/* 1. MAIN HEADLINE */}
         <h1
-          className="font-['Calistoga',serif] font-normal uppercase text-[clamp(3rem,12vw,6rem)] leading-[0.9] tracking-[-0.015em] select-none"
+          className="font-['Calistoga',serif] font-normal uppercase text-[clamp(3.25rem,10vw,5.5rem)] leading-[0.92] tracking-[-0.015em] select-none"
           aria-label="Frame Your Goa"
         >
           <span className="block text-[#0B6839]">FRAME</span>
@@ -23,7 +23,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
         </h1>
 
         {/* 2. DECORATIVE OCEAN WAVE DRAWING */}
-        <div className="mt-2 mb-6">
+        <div className="mt-1 mb-4">
           <svg
             width="170"
             height="55"
@@ -60,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
         </div>
 
         {/* 3. DESCRIPTION & CREATE BUTTONS */}
-        <div className="w-full flex flex-col items-start gap-4 mb-8 sm:mb-10">
+        <div className="w-full flex flex-col items-start gap-3 mb-6 sm:mb-8">
           <p className="font-mono font-normal text-[16px] sm:text-[18px] text-[#173F32] leading-[1.55] tracking-[0.01em]">
             Turn any photo into your HH Goa 2026 Builder ID or ready-to-use Profile Picture Frame.
           </p>
@@ -69,7 +69,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             <button
               type="button"
               onClick={onCreateClick}
-              className="btn-tactile h-[48px] sm:h-[50px] px-5 bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[15px] sm:text-[16px] uppercase tracking-[0.025em] flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] focus:outline-none"
+              className="h-[50px] px-8 bg-[#075B3A] text-[#F6F0E3] rounded-full font-['Oswald'] font-bold text-[15px] sm:text-[16px] uppercase tracking-[0.04em] flex items-center justify-center gap-2.5 cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(7,91,58,0.2)] hover:shadow-[0_12px_24px_rgba(7,91,58,0.35)] hover:bg-[#0B6839] hover:scale-[1.04] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 focus:outline-none"
             >
               <span>CREATE BUILDER ID</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
@@ -81,7 +81,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             <button
               type="button"
               onClick={onCreateTeamClick}
-              className="btn-tactile h-[48px] sm:h-[50px] px-5 bg-[#F2A900] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[15px] sm:text-[16px] uppercase tracking-[0.025em] flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e09b00] focus:outline-none"
+              className="h-[50px] px-8 bg-[#F2A900] text-[#173F32] rounded-full font-['Oswald'] font-bold text-[15px] sm:text-[16px] uppercase tracking-[0.04em] flex items-center justify-center gap-2.5 cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(242,169,0,0.2)] hover:shadow-[0_12px_24px_rgba(242,169,0,0.35)] hover:bg-[#ffb400] hover:scale-[1.04] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 focus:outline-none"
             >
               <span>CREATE TEAM FRAME</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
@@ -93,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
         </div>
 
         {/* 4. THREE BENEFITS */}
-        <div className="w-full grid grid-cols-1 min-[380px]:grid-cols-3 gap-5 min-[380px]:gap-3 sm:gap-6 mb-8 sm:mb-10">
+        <div className="w-full grid grid-cols-1 min-[380px]:grid-cols-3 gap-5 min-[380px]:gap-3 sm:gap-6 mb-4 sm:mb-6">
           {/* INSTANT */}
           <div className="flex flex-row min-[380px]:flex-col items-center min-[380px]:items-start gap-3 min-[380px]:gap-0">
             <div className="w-[40px] h-[40px] rounded-full border-[1.5px] border-[#F05A68] flex items-center justify-center mb-2.5 text-[#F05A68]">
@@ -142,7 +142,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
       </div>
 
       {/* Right Upload Card Zone */}
-      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-16">
+      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-0 lg:translate-y-6">
         <UploadFrame onFileSelect={onFileSelect} />
       </div>
     </section>
