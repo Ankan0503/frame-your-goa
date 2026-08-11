@@ -46,10 +46,12 @@ export function useImageUpload() {
   const selectFile = useCallback(async (file: File) => {
     setError(null);
     const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+
     if (!ACCEPTED_TYPES.has(file.type) && !ACCEPTED_EXTENSIONS.has(extension)) {
       setError('unsupported-format');
       return null;
     }
+
     if (file.size > MAX_FILE_SIZE) {
       setError('file-too-large');
       return null;
@@ -57,10 +59,13 @@ export function useImageUpload() {
 
     setIsProcessing(true);
     const nextUrl = URL.createObjectURL(file);
+
     try {
       const { width, height } = await waitForImage(nextUrl);
+
       if (activeUrl.current) URL.revokeObjectURL(activeUrl.current);
       activeUrl.current = nextUrl;
+
       const uploadedImage: UploadedImage = {
         file,
         previewUrl: nextUrl,
@@ -70,6 +75,7 @@ export function useImageUpload() {
         mimeType: file.type,
         size: file.size,
       };
+
       setImage(uploadedImage);
       return uploadedImage;
     } catch {
