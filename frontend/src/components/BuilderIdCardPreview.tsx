@@ -27,8 +27,8 @@ export const BuilderIdCardPreview: React.FC<BuilderIdCardPreviewProps> = ({
         id="builder-id-preview-card"
         className="bg-[#FAF6EE] rounded-[24px] p-4 sm:p-5 relative overflow-hidden transition-all duration-300 border border-[#E0D8C8] flex flex-col justify-between"
         style={{
-          width: 'min(100%, calc((100dvh - 300px) * 1.42))',
-          maxWidth: '560px',
+          width: '100%',
+          maxWidth: '720px',
           aspectRatio: '1.42 / 1',
           boxShadow: '0 20px 45px rgba(23, 63, 50, 0.16), 0 8px 20px rgba(0, 0, 0, 0.07)',
         }}

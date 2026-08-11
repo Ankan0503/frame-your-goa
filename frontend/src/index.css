@@ -21,6 +21,24 @@ body {
   overflow-x: clip;
 }
 
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background-color: #F6F0E3;
+}
+
+/* Keep controls inside their containers when labels or user-entered text are long. */
+button, input, select, textarea {
+  max-width: 100%;
+}
+
+/* Fixed mobile actions remain clear of gesture areas and browser UI. */
+@media (max-width: 1023px) {
+  .mobile-action-bar {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
 img, svg {
   max-width: 100%;
 }

@@ -233,7 +233,7 @@ export const CreateTeamSection: React.FC<CreateTeamSectionProps> = ({
   };
 
   return (
-    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-[40px] pt-6 sm:pt-8 pb-16 relative z-10">
+    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-[40px] pt-6 sm:pt-8 pb-28 lg:pb-16 relative z-10">
       
       {/* 1. BACK BUTTON */}
       <motion.button
@@ -563,7 +563,7 @@ export const CreateTeamSection: React.FC<CreateTeamSectionProps> = ({
       </div>
 
       {/* STICKY BOTTOM ACTION BAR FOR MOBILE ONE-HANDED OPERATION */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F6F0E3]/95 backdrop-blur-md border-t-2 border-[#173F32] p-3 shadow-2xl flex items-center gap-2">
+      <div className="mobile-action-bar lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F6F0E3]/95 backdrop-blur-md border-t-2 border-[#173F32] p-3 shadow-2xl flex items-center gap-2">
         <button
           type="button"
           onClick={handleDownload}

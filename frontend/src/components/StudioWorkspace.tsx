@@ -46,7 +46,7 @@ import {
   type SmartCropResult,
 } from '../lib/image/smartCrop';
 
-export type WorkspaceMode = 'builder' | 'team';
+export type WorkspaceMode = 'builder' | 'pfp' | 'team';
 
 const slideVariants = {
   enter: (dir: 'forward' | 'backward') => ({
@@ -242,6 +242,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           photoUrl,
           cropResult,
         });
+      } else if (activeMode === 'pfp') {
+        await downloadPfpImage({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult }, builderForm.name);
       } else if (activeMode === 'team') {
         await downloadTeamFrameImage({
           teamName,
@@ -272,6 +274,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           photoUrl,
           cropResult,
         });
+      } else if (activeMode === 'pfp') {
+        canvas = await renderPfpToCanvas({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult });
       } else {
         canvas = await renderTeamFrame({
           teamName,
@@ -318,7 +322,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   // FULL SCREEN RESULT PAGE (PICTURE 2 FLOW) WHEN GENERATED
   const renderResultView = () => {
     return (
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-2 pb-4 relative z-10 animate-fade-in lg:h-full lg:overflow-hidden lg:flex lg:flex-col">
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-2 pb-8 relative z-10 animate-fade-in">
         
         {/* RESULT PAGE HEADER / NAVBAR */}
         <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-3 border-b-2 border-[#173F32]/15 shrink-0">
@@ -335,19 +339,21 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* MAIN RESULT GRID */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_340px] gap-8 flex-1 min-h-0 lg:grid-rows-1 mb-6 lg:mb-0">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_340px] gap-8 mb-6">
           
           {/* CENTER COLUMN: PREVIEW CARD & PAGINATION DOTS */}
-          <div className="flex flex-col items-center justify-start w-full min-h-[400px] lg:min-h-0 h-full lg:col-start-2">
+          <div className="flex flex-col items-center justify-start w-full min-h-[280px] lg:col-start-2">
             <div className="w-full flex items-center justify-center">
               {activeMode === 'builder' && (
                 <BuilderIdCardPreview
                   formData={builderForm}
                   photoUrl={photoUrl}
                   cropResult={cropResult}
-                  pfpStyle={pfpStyle}
-                  pfpRatio={pfpRatio}
                 />
+              )}
+
+              {activeMode === 'pfp' && (
+                <PfpFramePreview photoUrl={photoUrl} style={pfpStyle} aspectRatio={pfpRatio} cropResult={cropResult} />
               )}
 
               {activeMode === 'team' && (
@@ -610,7 +616,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* MODE SELECTOR PILLS */}
-        <div className="flex items-center gap-1.5 bg-[#EDE5D4] p-1.5 rounded-full border border-[#173F32]/15 shadow-sm">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 bg-[#EDE5D4] p-1.5 rounded-[20px] md:rounded-full border border-[#173F32]/15 shadow-sm">
           <button
             type="button"
             onClick={() => switchMode('builder')}
@@ -634,15 +640,26 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           >
             <span>👥 TEAM FRAME</span>
           </button>
+          <button
+            type="button"
+            onClick={() => switchMode('pfp')}
+            className={`btn-tactile px-5 py-2 rounded-full font-['Oswald'] font-semibold text-[13px] sm:text-[14px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${
+              activeMode === 'pfp'
+                ? 'bg-[#F05A68] text-[#F6F0E3] shadow-md'
+                : 'text-[#173F32]/70 hover:text-[#173F32] hover:bg-[#173F32]/10'
+            }`}
+          >
+            <span>🖼️ PFP FRAME / OVERLAY</span>
+          </button>
         </div>
 
       </div>
 
       {/* 2. WORKSPACE GRID: PREVIEW CARD CENTER, OPTIONS ON RIGHT */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(340px,1fr)_minmax(0,640px)_minmax(340px,1fr)] gap-6 items-start mb-16">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start mb-16">
         
         {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
-        <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0 lg:col-start-1">
+        <div className="hidden">
           <div>
             <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.9] tracking-[-0.015em]">
               <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">YOUR GOA</span>
@@ -713,7 +730,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* CENTER COLUMN: LIVE PREVIEW CARD & GENERATE BUTTON BELOW */}
-        <div className="flex flex-col gap-5 w-full lg:col-start-2">
+        <div className="flex flex-col gap-5 w-full lg:col-start-1">
           
           {/* LIVE PREVIEW CARD */}
           <div className="flex flex-col items-center justify-center w-full">
@@ -722,9 +739,11 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 formData={builderForm}
                 photoUrl={photoUrl}
                 cropResult={cropResult}
-                pfpStyle={pfpStyle}
-                pfpRatio={pfpRatio}
               />
+            )}
+
+            {activeMode === 'pfp' && (
+              <PfpFramePreview photoUrl={photoUrl} style={pfpStyle} aspectRatio={pfpRatio} cropResult={cropResult} />
             )}
 
             {activeMode === 'team' && (
@@ -838,7 +857,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* RIGHT COLUMN: ALL CUSTOMIZATION OPTIONS (RIGHT-ALIGNED IN COLUMN 3) */}
-        <div className="flex flex-col gap-5 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs lg:col-start-3 lg:justify-self-end lg:w-[min(340px,100%)]">
+        <div className="flex flex-col gap-5 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs lg:col-start-2 lg:justify-self-end lg:w-[min(340px,100%)]">
           
           {/* PHOTO UPLOAD BOX */}
           <div className="flex flex-col gap-2">
@@ -936,58 +955,32 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 </div>
               </div>
 
-              {/* PFP FEATURE EMBEDDED */}
-              <div className="pt-3 border-t border-dashed border-[#173F32]/20 flex flex-col gap-3">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase flex items-center justify-between">
-                  <span>PFP &amp; FRAME STYLING</span>
-                  <span className="font-mono text-[10px] text-[#075B3A]">FEATURE INCLUDED</span>
-                </span>
+            </div>
+          )}
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-mono text-[10px] font-bold text-[#173F32]/80 uppercase">
-                    CHOOSE FRAME STYLE
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {FRAME_STYLES.map((st) => (
-                      <button
-                        key={st.id}
-                        type="button"
-                        onClick={() => setPfpStyle(st.id)}
-                        className={`btn-tactile p-2 rounded-[8px] text-left border cursor-pointer flex flex-col gap-0.5 ${
-                          pfpStyle === st.id
-                            ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]'
-                            : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
-                        }`}
-                      >
-                        <span className="font-['Oswald'] font-bold text-[11px] uppercase tracking-wide truncate">
-                          {st.title.replace('STYLE ', '')}
-                        </span>
-                        <span className="font-mono text-[9px] opacity-80 truncate">{st.subtitle.split(',')[0]}</span>
-                      </button>
-                    ))}
-                  </div>
+          {activeMode === 'pfp' && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <span className="font-['Oswald'] font-bold text-[14px] text-[#173F32] uppercase block">2. PFP FRAME / OVERLAY</span>
+                <p className="font-mono text-[10px] text-[#173F32]/70 mt-1 leading-relaxed">Your photo stays front and center; the HH Goa branding wraps around it for a ready-to-use profile picture.</p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="font-mono text-[10px] font-bold text-[#173F32]/80 uppercase">CHOOSE FRAME STYLE</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {FRAME_STYLES.map((st) => (
+                    <button key={st.id} type="button" onClick={() => setPfpStyle(st.id)} className={`btn-tactile p-2 rounded-[8px] text-left border cursor-pointer flex flex-col gap-0.5 ${pfpStyle === st.id ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]' : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'}`}>
+                      <span className="font-['Oswald'] font-bold text-[11px] uppercase tracking-wide truncate">{st.title.replace('STYLE ', '')}</span>
+                      <span className="font-mono text-[9px] opacity-80 truncate">{st.subtitle.split(',')[0]}</span>
+                    </button>
+                  ))}
                 </div>
-
-                <div>
-                  <label className="font-mono text-[10px] font-bold text-[#173F32]/80 uppercase block mb-1">
-                    ASPECT RATIO
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {ASPECT_RATIOS.map((ar) => (
-                      <button
-                        key={ar.id}
-                        type="button"
-                        onClick={() => setPfpRatio(ar.id)}
-                        className={`btn-tactile py-1.5 px-1 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer text-center ${
-                          pfpRatio === ar.id
-                            ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]'
-                            : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
-                        }`}
-                      >
-                        <div>{ar.label}</div>
-                      </button>
-                    ))}
-                  </div>
+              </div>
+              <div>
+                <label className="font-mono text-[10px] font-bold text-[#173F32]/80 uppercase block mb-1">ASPECT RATIO</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {ASPECT_RATIOS.map((ar) => (
+                    <button key={ar.id} type="button" onClick={() => setPfpRatio(ar.id)} className={`btn-tactile py-1.5 px-1 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer text-center ${pfpRatio === ar.id ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]' : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'}`}>{ar.label}</button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1243,7 +1236,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   const direction = isGenerated ? 'forward' : 'backward';
 
   return (
-    <div className="w-full lg:h-full relative overflow-hidden">
+    <div className="w-full relative overflow-x-clip">
       <AnimatePresence mode="wait" initial={false} custom={direction}>
         {isGenerated ? (
           <motion.div
@@ -1254,7 +1247,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
             animate="center"
             exit="exit"
             transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
-            className="w-full lg:h-full flex flex-col"
+            className="w-full flex flex-col"
           >
             {renderResultView()}
           </motion.div>

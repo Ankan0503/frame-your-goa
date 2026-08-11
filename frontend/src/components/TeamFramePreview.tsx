@@ -17,7 +17,7 @@ export const TeamFramePreview: React.FC<TeamFramePreviewProps> = ({ data, pfpSty
       <div
         className="bg-[#F6F0E3] border-[6px] sm:border-[10px] border-[#173F32] rounded-[24px] p-4 sm:p-6 shadow-2xl flex flex-col justify-between select-none relative overflow-hidden"
         style={{
-          width: 'min(100%, calc((100dvh - 300px) * 1.3333))',
+          width: '100%',
           maxWidth: '800px',
           aspectRatio: '4 / 3',
           boxShadow: '0 25px 60px rgba(23, 63, 50, 0.2)',
