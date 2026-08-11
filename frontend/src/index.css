@@ -75,3 +75,10 @@ button, a, input, select, textarea {
   }
 }
 
+/* While a share modal is open, keep only the navbar logo visible */
+body.modal-share-open .modal-share-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+

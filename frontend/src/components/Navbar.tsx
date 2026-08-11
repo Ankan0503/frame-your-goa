@@ -20,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
 
   return (
     <>
-      <header className="w-full pt-4 sm:pt-6 lg:pt-8 px-3 min-[380px]:px-4 sm:px-[40px] max-w-[1440px] mx-auto bg-transparent relative z-20">
+      <header className="w-full pt-4 sm:pt-6 lg:pt-8 px-3 min-[380px]:px-4 sm:px-[40px] max-w-[1440px] mx-auto bg-transparent relative z-[60]">
         <nav
           aria-label="Main Navigation"
           className="w-full flex items-start justify-between bg-transparent"
@@ -52,11 +52,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
             {/* Small faint colored separator */}
             <div
               aria-hidden="true"
-              className="hidden sm:block h-9 w-[1px] bg-[#075B3A]/20 mx-2 md:mx-4 shrink-0"
+              className="hidden sm:block h-9 w-[1px] bg-[#075B3A]/20 mx-2 md:mx-4 shrink-0 modal-share-hidden"
             />
 
             {/* HHG tagline in beige pill with green blinking dot */}
-            <div className="hidden sm:flex items-center gap-2.5 rounded-full bg-[#F8F2E6] border border-[#173F32]/10 px-3 sm:px-3.5 py-1.5 shrink-0">
+            <div className="hidden sm:flex items-center gap-2.5 rounded-full bg-[#F8F2E6] border border-[#173F32]/10 px-3 sm:px-3.5 py-1.5 shrink-0 modal-share-hidden">
               <div className="flex flex-col font-mono font-medium text-[11px] leading-[1.25] tracking-[0.04em] text-[#173F32] select-none">
                 <span className="font-bold text-[#075B3A]">HHG / BUILD-01</span>
                 <span className="opacity-80">GOA / 2026</span>
@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
             <button
               type="button"
               onClick={handleAboutClick}
-              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2 min-[380px]:px-3 sm:px-4 bg-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none"
+              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2 min-[380px]:px-3 sm:px-4 bg-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none modal-share-hidden"
             >
               ABOUT US
             </button>
@@ -84,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
               href="https://hhgoa.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2.5 min-[380px]:px-3 sm:px-4 bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap focus:outline-none"
+              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2.5 min-[380px]:px-3 sm:px-4 bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap focus:outline-none modal-share-hidden"
             >
               <span>HHGOA.COM</span>
               <ArrowUpRight className="w-3 h-3 stroke-[2] shrink-0" aria-hidden="true" />
@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
       {/* ABOUT US MODAL */}
       {isAboutModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#173F32]/40 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-[#173F32]/40 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() => setIsAboutModalOpen(false)}
         >
           <div

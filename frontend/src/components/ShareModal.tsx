@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import {
   X,
   Share2,
@@ -34,6 +35,15 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [shareData, setShareData] = useState<ShareResponse | null>(null);
   const [caption, setCaption] = useState<string>(DEFAULT_X_CAPTION);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-share-open');
+    } else {
+      document.body.classList.remove('modal-share-open');
+    }
+    return () => document.body.classList.remove('modal-share-open');
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && imageDataUrl) {
@@ -79,15 +89,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     });
   };
 
-  return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-[540px] bg-[#F8F2E6] border-4 border-[#173F32] rounded-[24px] p-6 shadow-2xl relative flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
-        >
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="w-full max-w-[540px] bg-[#F8F2E6] border-4 border-[#173F32] rounded-[24px] p-6 shadow-2xl relative flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
+      >
           {/* CLOSE BUTTON */}
           <button
             type="button"
@@ -199,7 +207,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             </>
           )}
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </div>,
+    document.body
   );
 };
