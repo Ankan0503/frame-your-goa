@@ -16,20 +16,25 @@ export interface BuilderCardData {
   builderId: string;
   issueDate?: string;
   photoUrl: string;
+  orientation?: 'portrait' | 'landscape';
   cropResult?: SmartCropResult;
   qrCodeDataUrl?: string;
 }
 
-/**
- * Renders high-resolution HH Goa 2026 Builder ID Pass (1200x1600).
- */
 export async function renderBuilderCard(
   data: BuilderCardData,
   targetCanvas?: HTMLCanvasElement
 ): Promise<HTMLCanvasElement> {
   await ensureFontsLoaded();
 
-  const { width, height } = CANVAS_DIMENSIONS.builderCard;
+  const templatePath = data.orientation === 'landscape'
+    ? '/assets/id-templates/goa-id-landscape-reference.png'
+    : '/assets/id-templates/goa-id-portrait-reference.png';
+
+  const templateImage = await loadImage(templatePath);
+  const width = templateImage.naturalWidth || CANVAS_DIMENSIONS.builderCard.width;
+  const height = templateImage.naturalHeight || CANVAS_DIMENSIONS.builderCard.height;
+
   const canvas = targetCanvas || document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -37,61 +42,27 @@ export async function renderBuilderCard(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not obtain 2D canvas context');
 
-  // Background Canvas
-  ctx.fillStyle = COLORS.warmCream;
-  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(templateImage, 0, 0, width, height);
 
-  // Outer Decorative Frame Border
-  const outerPad = 30;
-  ctx.strokeStyle = COLORS.deepForest;
-  ctx.lineWidth = 10;
-  ctx.strokeRect(outerPad, outerPad, width - outerPad * 2, height - outerPad * 2);
-
-  // Main Card Inner Container
-  const cardX = 60;
-  const cardY = 60;
-  const cardW = width - 120;
-  const cardH = height - 120;
-
-  ctx.fillStyle = COLORS.cardBg;
-  drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 24);
-  ctx.fill();
-
-  ctx.strokeStyle = COLORS.deepForest;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(cardX, cardY, cardW, cardH);
-
-  // CARD HEADER: HH GOA 2026 + Pass Type
-  ctx.fillStyle = COLORS.forestGreen;
-  ctx.fillRect(cardX, cardY, cardW, 110);
-
-  ctx.fillStyle = COLORS.goldenYellow;
-  ctx.font = `bold 42px ${FONTS.mono}`;
-  ctx.fillText('HH GOA 2026', cardX + 40, cardY + 70);
-
-  ctx.fillStyle = COLORS.warmCream;
-  ctx.font = `bold 24px ${FONTS.oswald}`;
-  ctx.textAlign = 'right';
-  ctx.fillText('OFFICIAL BUILDER PASS', cardX + cardW - 40, cardY + 70);
-  ctx.textAlign = 'left';
-
-  // PHOTO CONTAINER
-  const photoW = cardW - 80;
-  const photoH = 700;
-  const photoX = cardX + 40;
-  const photoY = cardY + 150;
-
-  ctx.fillStyle = COLORS.photoBg;
-  drawRoundedRect(ctx, photoX, photoY, photoW, photoH, 16);
-  ctx.fill();
+  const photoBox = data.orientation === 'landscape'
+    ? {
+        x: width * 0.08,
+        y: height * 0.20,
+        width: width * 0.28,
+        height: height * 0.56,
+        radius: width * 0.04,
+      }
+    : {
+        x: width * 0.32,
+        y: height * 0.18,
+        width: width * 0.36,
+        height: width * 0.36,
+        radius: width * 0.5,
+      };
 
   if (data.photoUrl) {
     try {
       const img = await loadImage(data.photoUrl);
-      ctx.save();
-      drawRoundedRect(ctx, photoX, photoY, photoW, photoH, 16);
-      ctx.clip();
-
       const crop = data.cropResult?.transform || {
         cropX: 0,
         cropY: 0,
@@ -99,128 +70,101 @@ export async function renderBuilderCard(
         cropHeight: img.height,
       };
 
+      ctx.save();
+      if (data.orientation === 'landscape') {
+        drawRoundedRect(ctx, photoBox.x, photoBox.y, photoBox.width, photoBox.height, photoBox.radius);
+      } else {
+        ctx.beginPath();
+        ctx.arc(photoBox.x + photoBox.width / 2, photoBox.y + photoBox.height / 2, photoBox.width / 2, 0, Math.PI * 2);
+        ctx.closePath();
+      }
+      ctx.clip();
+
       ctx.drawImage(
         img,
         crop.cropX,
         crop.cropY,
         crop.cropWidth,
         crop.cropHeight,
-        photoX,
-        photoY,
-        photoW,
-        photoH
+        photoBox.x,
+        photoBox.y,
+        photoBox.width,
+        photoBox.height
       );
       ctx.restore();
     } catch {
       // Photo fallback
     }
-  }
 
-  // Photo Frame Border & Watermark Badge
-  ctx.strokeStyle = COLORS.deepForest;
-  ctx.lineWidth = 4;
-  drawRoundedRect(ctx, photoX, photoY, photoW, photoH, 16);
-  ctx.stroke();
-
-  // "GOA, INDIA 28-31 OCT" Watermark Pill on Photo
-  const pillW = 340;
-  const pillH = 48;
-  const pillX = photoX + 20;
-  const pillY = photoY + photoH - 68;
-
-  ctx.fillStyle = 'rgba(23, 63, 50, 0.9)';
-  drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 10);
-  ctx.fill();
-
-  ctx.fillStyle = COLORS.goldenYellow;
-  ctx.font = `bold 20px ${FONTS.mono}`;
-  ctx.fillText('GOA, INDIA • 28—31 OCT', pillX + 20, pillY + 32);
-
-  // BUILDER DETAILS SECTION
-  let currentY = photoY + photoH + 60;
-
-  // Name
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.font = `bold 22px ${FONTS.mono}`;
-  ctx.fillText('BUILDER NAME', photoX, currentY);
-
-  currentY += 45;
-  ctx.fillStyle = COLORS.forestGreen;
-  ctx.font = `bold 52px ${FONTS.calistoga}`;
-  ctx.fillText(data.fullName.toUpperCase() || 'ANONYMOUS BUILDER', photoX, currentY);
-
-  currentY += 60;
-
-  // Role & Project Grid
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.font = `bold 20px ${FONTS.mono}`;
-  ctx.fillText('ROLE', photoX, currentY);
-  ctx.fillText('PROJECT', photoX + 450, currentY);
-
-  currentY += 36;
-  ctx.fillStyle = COLORS.coralRed;
-  ctx.font = `bold 32px ${FONTS.oswald}`;
-  ctx.fillText(data.role.toUpperCase() || 'DEVELOPER', photoX, currentY);
-
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.font = `bold 32px ${FONTS.oswald}`;
-  ctx.fillText((data.project || 'HH GOA 2026').toUpperCase(), photoX + 450, currentY);
-
-  currentY += 80;
-
-  // BOTTOM METADATA & QR CODE AREA
-  ctx.strokeStyle = COLORS.borderDivider;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(photoX, currentY);
-  ctx.lineTo(photoX + photoW, currentY);
-  ctx.stroke();
-
-  currentY += 40;
-
-  // Builder ID Badge Number
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.font = `bold 18px ${FONTS.mono}`;
-  ctx.fillText('BUILDER ID PASS #', photoX, currentY);
-
-  ctx.fillStyle = COLORS.forestGreen;
-  ctx.font = `bold 36px ${FONTS.mono}`;
-  ctx.fillText(data.builderId || 'HH-2026-0001', photoX, currentY + 42);
-
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.font = `bold 18px ${FONTS.mono}`;
-  ctx.fillText(`LOCATION: ${data.location || 'GOA, INDIA'}`, photoX, currentY + 85);
-
-  // Draw QR code if provided
-  if (data.qrCodeDataUrl) {
-    try {
-      const qrImg = await loadImage(data.qrCodeDataUrl);
-      const qrSize = 130;
-      const qrX = photoX + photoW - qrSize;
-      const qrY = currentY - 10;
-
-      ctx.fillStyle = COLORS.warmCream;
-      drawRoundedRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 12);
-      ctx.fill();
-      ctx.strokeStyle = COLORS.deepForest;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-    } catch {
-      // QR code fallback
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = Math.max(6, width * 0.006);
+    if (data.orientation === 'landscape') {
+      drawRoundedRect(ctx, photoBox.x, photoBox.y, photoBox.width, photoBox.height, photoBox.radius);
+    } else {
+      ctx.beginPath();
+      ctx.arc(photoBox.x + photoBox.width / 2, photoBox.y + photoBox.height / 2, photoBox.width / 2, 0, Math.PI * 2);
+      ctx.closePath();
     }
+    ctx.stroke();
   }
 
-  // Bottom Hashtag Banner
-  ctx.fillStyle = COLORS.deepForest;
-  ctx.fillRect(cardX, cardY + cardH - 70, cardW, 70);
+  const nameText = data.fullName || 'YOUR NAME';
+  const stackText = data.role || 'BUILDER';
+  const projectText = data.project || 'HH GOA 2026';
 
-  ctx.fillStyle = COLORS.warmCream;
-  ctx.font = `bold 28px ${FONTS.calistoga}`;
-  ctx.textAlign = 'center';
-  ctx.fillText('#FRAMEINGOA  •  HACKER HOUSE GOA 2026', cardX + cardW / 2, cardY + cardH - 26);
-  ctx.textAlign = 'left';
+  if (data.orientation === 'landscape') {
+    const textX = photoBox.x + photoBox.width + width * 0.05;
+    const textWidth = width - textX - width * 0.08;
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = COLORS.deepForest;
+    ctx.font = `bold ${Math.round(width * 0.045)}px ${FONTS.calistoga}`;
+    ctx.fillText(nameText.toUpperCase(), textX, photoBox.y + height * 0.07);
+
+    ctx.fillStyle = COLORS.coralRed;
+    ctx.font = `bold ${Math.round(width * 0.03)}px ${FONTS.oswald}`;
+    ctx.fillText(stackText.toUpperCase(), textX, photoBox.y + height * 0.13);
+
+    ctx.fillStyle = COLORS.deepForest;
+    ctx.font = `bold ${Math.round(width * 0.02)}px ${FONTS.mono}`;
+    ctx.fillText(projectText.toUpperCase(), textX, photoBox.y + height * 0.19);
+
+    const badgeY = photoBox.y + photoBox.height + height * 0.04;
+    ctx.fillStyle = 'rgba(23, 63, 50, 0.88)';
+    ctx.fillRect(textX, badgeY, textWidth * 0.95, height * 0.065);
+    ctx.fillStyle = COLORS.goldenYellow;
+    ctx.font = `bold ${Math.round(width * 0.025)}px ${FONTS.mono}`;
+    ctx.fillText(`BUILDER ID: ${data.builderId}`, textX + width * 0.01, badgeY + height * 0.042);
+  } else {
+    const centerX = width / 2;
+    const textY = photoBox.y + photoBox.height + height * 0.05;
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.deepForest;
+    ctx.font = `bold ${Math.round(width * 0.05)}px ${FONTS.calistoga}`;
+    ctx.fillText(nameText.toUpperCase(), centerX, textY);
+
+    ctx.fillStyle = COLORS.coralRed;
+    ctx.font = `bold ${Math.round(width * 0.03)}px ${FONTS.oswald}`;
+    ctx.fillText(stackText.toUpperCase(), centerX, textY + height * 0.06);
+
+    ctx.fillStyle = COLORS.deepForest;
+    ctx.font = `bold ${Math.round(width * 0.022)}px ${FONTS.mono}`;
+    ctx.fillText(projectText.toUpperCase(), centerX, textY + height * 0.11);
+
+    const badgeWidth = width * 0.44;
+    const badgeHeight = height * 0.07;
+    const badgeX = centerX - badgeWidth / 2;
+    const badgeY = textY + height * 0.145;
+
+    ctx.fillStyle = 'rgba(23, 63, 50, 0.9)';
+    drawRoundedRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, badgeHeight * 0.38);
+    ctx.fill();
+
+    ctx.fillStyle = COLORS.goldenYellow;
+    ctx.font = `bold ${Math.round(width * 0.023)}px ${FONTS.mono}`;
+    ctx.fillText(`BUILDER ID: ${data.builderId}`, centerX, badgeY + badgeHeight * 0.62);
+  }
 
   return canvas;
 }

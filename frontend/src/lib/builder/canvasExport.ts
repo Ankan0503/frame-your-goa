@@ -15,6 +15,7 @@ export interface IdCardData {
   builderClass: string;
   photoUrl: string;
   cropResult?: SmartCropResult;
+  orientation?: 'portrait' | 'landscape';
 }
 
 export async function renderIdCardToCanvas(

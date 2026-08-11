@@ -21,7 +21,7 @@ import {
   Edit3,
   ArrowLeft,
 } from 'lucide-react';
-import { BuilderIdCardPreview } from './BuilderIdCardPreview';
+import { GoaIdTemplatePreview, type IdOrientation } from './GoaIdTemplatePreview';
 import { PfpFramePreview } from './PfpFramePreview';
 import { TeamFramePreview } from './TeamFramePreview';
 import { type BuilderFormData } from './BuilderForm';
@@ -86,6 +86,11 @@ const ASPECT_RATIOS: { id: AspectRatio; label: string; desc: string }[] = [
   { id: '16:9', label: '16:9', desc: 'Landscape Banner' },
 ];
 
+const ID_ORIENTATIONS: { id: IdOrientation; label: string }[] = [
+  { id: 'portrait', label: 'Portrait' },
+  { id: 'landscape', label: 'Landscape' },
+];
+
 const TEAM_LAYOUTS: { id: TeamLayout; title: string; subtitle: string }[] = [
   { id: 'layout-a', title: 'LAYOUT A', subtitle: 'Equal Column Posters' },
   { id: 'layout-b', title: 'LAYOUT B', subtitle: 'Featured Lead + Stacked' },
@@ -140,6 +145,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
     role: 'BUILDER',
     builderClass: 'CREATIVE BUILDER',
   });
+  const [idOrientation, setIdOrientation] = useState<IdOrientation>('portrait');
 
   // 2. PFP FRAME FORM STATE
   const [pfpStyle, setPfpStyle] = useState<PfpStyle>('signal');
@@ -241,6 +247,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           builderClass: builderForm.builderClass,
           photoUrl,
           cropResult,
+          orientation: idOrientation,
         });
       } else if (activeMode === 'pfp') {
         await downloadPfpImage({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult }, builderForm.name);
@@ -273,6 +280,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           builderClass: builderForm.builderClass,
           photoUrl,
           cropResult,
+          orientation: idOrientation,
         });
       } else if (activeMode === 'pfp') {
         canvas = await renderPfpToCanvas({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult });
@@ -345,10 +353,11 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           <div className="flex flex-col items-center justify-start w-full min-h-[280px] lg:col-start-2">
             <div className="w-full flex items-center justify-center">
               {activeMode === 'builder' && (
-                <BuilderIdCardPreview
+                <GoaIdTemplatePreview
                   formData={builderForm}
                   photoUrl={photoUrl}
                   cropResult={cropResult}
+                  orientation={idOrientation}
                 />
               )}
 
@@ -735,10 +744,11 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           {/* LIVE PREVIEW CARD */}
           <div className="flex flex-col items-center justify-center w-full">
             {activeMode === 'builder' && (
-              <BuilderIdCardPreview
-                formData={builderForm}
-                photoUrl={photoUrl}
-                cropResult={cropResult}
+              <GoaIdTemplatePreview
+                  formData={builderForm}
+                  photoUrl={photoUrl}
+                  cropResult={cropResult}
+                  orientation={idOrientation}
               />
             )}
 
@@ -950,6 +960,29 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                       }`}
                     >
                       {role}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ORIENTATION */}
+              <div>
+                <label className="font-mono text-[11px] font-bold text-[#173F32]/80 uppercase block mb-1.5">
+                  ORIENTATION
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {ID_ORIENTATIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setIdOrientation(option.id)}
+                      className={`btn-tactile py-1.5 px-2 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer ${
+                        idOrientation === option.id
+                          ? 'bg-[#173F32] text-[#F6F0E3] border-[#173F32]'
+                          : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
+                      }`}
+                    >
+                      {option.label}
                     </button>
                   ))}
                 </div>
