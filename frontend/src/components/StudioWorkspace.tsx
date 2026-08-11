@@ -20,11 +20,6 @@ import {
   ChevronUp,
   Edit3,
   ArrowLeft,
-  Mic,
-  Heart,
-  Crown,
-  Globe,
-  Palmtree,
 } from 'lucide-react';
 import { BuilderIdCardPreview } from './BuilderIdCardPreview';
 import { PfpFramePreview } from './PfpFramePreview';
@@ -321,36 +316,6 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
               <ArrowLeft className="w-4 h-4 text-[#075B3A]" />
               <span>BACK TO EDITOR</span>
             </button>
-
-            <div className="flex items-center gap-2">
-              <span className="font-['Calistoga',serif] font-bold text-[22px] sm:text-[26px] text-[#173F32]">
-                HACKER GOA HOUSE
-              </span>
-              <span className="font-mono text-[11px] text-[#173F32]/60 hidden sm:inline">
-                • LESS NOISE. MORE SIGNAL.
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {onBackToHome && (
-              <button
-                type="button"
-                onClick={onBackToHome}
-                className="btn-tactile px-3.5 py-2 bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[#173F32]/5"
-              >
-                ABOUT US
-              </button>
-            )}
-            <a
-              href="https://hhgoa.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-tactile px-4 py-2 bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#0B6839]"
-            >
-              <span>VISIT HHGOA.COM</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-[#F2A900]" />
-            </a>
           </div>
         </div>
 
@@ -360,24 +325,48 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
           <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0">
             <div>
-              <div className="flex flex-col font-['Calistoga',serif] leading-[1.02] tracking-tight">
-                <span className="text-[38px] sm:text-[46px] text-[#173F32]">YOUR GOA</span>
-                <span className="text-[38px] sm:text-[46px] text-[#173F32]">FRAME</span>
-                <span className="text-[38px] sm:text-[46px] text-[#F05A68]">IS READY!</span>
+              <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.92] tracking-[-0.015em]">
+                <span className="text-[48px] sm:text-[60px] text-[#0B6839]">YOUR GOA</span>
+                <span className="text-[48px] sm:text-[60px] text-[#0B6839]">FRAME</span>
+                <span className="text-[48px] sm:text-[60px] text-[#F05A68]">IS READY!</span>
               </div>
 
-              {/* WAVE DOODLE SQUIGGLE */}
-              <svg className="w-32 h-3 text-[#075B3A] my-3" viewBox="0 0 100 10" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M0 5 Q 12.5 0, 25 5 T 50 5 T 75 5 T 100 5" />
+              {/* DECORATIVE OCEAN WAVE (like landing page) */}
+              <svg
+                width="170"
+                height="55"
+                viewBox="0 0 170 55"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="block overflow-visible mt-3"
+                aria-hidden="true"
+              >
+                <path
+                  d="M 5 32 C 18 36, 32 32, 48 24 C 64 16, 78 7, 92 7 C 102 7, 108 11, 102 18 C 96 25, 87 28, 92 33 C 98 38, 115 35, 128 27 C 137 21, 142 15, 145 22 C 141 24, 139 27, 142 29 C 146 31, 152 29, 158 31 C 162 32, 166 31, 170 32"
+                  stroke="#6B9142"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 40 33 C 50 28, 62 26, 70 29 C 78 32, 73 37, 68 39 C 63 41, 62 36, 68 32"
+                  stroke="#6B9142"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 148 35 C 154 33, 160 36, 168 35"
+                  stroke="#6B9142"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
-
-              <p className="font-mono text-[12px] text-[#173F32]/80 leading-relaxed max-w-[250px]">
-                You're officially on the guestlist to Hacker House Goa 2026.
-              </p>
             </div>
 
             {/* VINTAGE STAMP & AZULEJO TILES DECORATION */}
-            <div className="flex flex-col gap-4 mt-auto">
+            <div className="flex flex-col gap-4 mt-auto mb-6">
               <div className="flex items-center gap-3">
                 {/* VINTAGE CIRCULAR POSTMARK STAMP */}
                 <div className="w-18 h-18 rounded-full border-2 border-dashed border-[#075B3A]/60 flex flex-col items-center justify-center p-2 text-center transform rotate-[-8deg] bg-[#F2E8D5] shadow-xs shrink-0">
@@ -428,15 +417,6 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   pfpStyle={pfpStyle}
                 />
               )}
-            </div>
-
-            {/* CAROUSEL PAGINATION DOTS */}
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <div className="w-3 h-3 rounded-full bg-[#075B3A]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#173F32]/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#173F32]/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#173F32]/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#173F32]/30" />
             </div>
           </div>
 
@@ -571,65 +551,6 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
         </div>
 
-        {/* BOTTOM BANNER: PASSES YOU CAN GENERATE */}
-        <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col min-w-[180px]">
-            <span className="font-['Oswald'] font-bold text-[16px] text-[#173F32] uppercase leading-tight">
-              PASSES YOU CAN GENERATE
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 w-full">
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <Palmtree className="w-5 h-5 text-[#075B3A] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">BUILDER</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">The classic builder ID for attendees.</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <Mic className="w-5 h-5 text-[#F05A68] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">SPEAKER</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">For speakers & mentors.</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <Heart className="w-5 h-5 text-[#075B3A] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">VOLUNTEER</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">For the backbone of the event.</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <SlidersHorizontal className="w-5 h-5 text-[#173F32] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">CREW</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">For the ones who make it happen.</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <Globe className="w-5 h-5 text-[#075B3A] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">COMMUNITY</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">For our amazing community.</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 bg-[#F6F0E3] p-2.5 rounded-[12px] border border-[#173F32]/15">
-              <Crown className="w-5 h-5 text-[#F2A900] shrink-0 mt-0.5" />
-              <div className="flex flex-col">
-                <span className="font-['Oswald'] font-bold text-[13px] text-[#173F32] uppercase">VIP</span>
-                <span className="font-mono text-[9px] text-[#173F32]/70 leading-tight">Special access pass.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* SHARE MODAL */}
         {shareDataUrl && (
           <ShareModal
@@ -673,14 +594,14 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* MODE SELECTOR PILLS */}
-        <div className="flex items-center bg-[#EDE5D4] p-1.5 rounded-[12px] border-2 border-[#173F32]">
+        <div className="flex items-center gap-1.5 bg-[#EDE5D4] p-1.5 rounded-full border border-[#173F32]/15 shadow-sm">
           <button
             type="button"
             onClick={() => switchMode('builder')}
-            className={`btn-tactile px-4 py-2 rounded-[8px] font-['Oswald'] font-bold text-[13px] sm:text-[14px] uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 ${
+            className={`btn-tactile px-5 py-2 rounded-full font-['Oswald'] font-semibold text-[13px] sm:text-[14px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${
               activeMode === 'builder'
-                ? 'bg-[#075B3A] text-[#F6F0E3] shadow-xs'
-                : 'bg-transparent text-[#173F32] hover:bg-[#173F32]/10'
+                ? 'bg-[#075B3A] text-[#F6F0E3] shadow-md'
+                : 'text-[#173F32]/70 hover:text-[#173F32] hover:bg-[#173F32]/10'
             }`}
           >
             <span>🆔 BUILDER ID</span>
@@ -689,10 +610,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           <button
             type="button"
             onClick={() => switchMode('team')}
-            className={`btn-tactile px-4 py-2 rounded-[8px] font-['Oswald'] font-bold text-[13px] sm:text-[14px] uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 ${
+            className={`btn-tactile px-5 py-2 rounded-full font-['Oswald'] font-semibold text-[13px] sm:text-[14px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${
               activeMode === 'team'
-                ? 'bg-[#F2A900] text-[#173F32] shadow-xs'
-                : 'bg-transparent text-[#173F32] hover:bg-[#173F32]/10'
+                ? 'bg-[#F2A900] text-[#173F32] shadow-md'
+                : 'text-[#173F32]/70 hover:text-[#173F32] hover:bg-[#173F32]/10'
             }`}
           >
             <span>👥 TEAM FRAME</span>
@@ -1118,36 +1039,16 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         {/* RIGHT COLUMN: ACTION CONTROLS & QUICK ACTIONS */}
         <div className="flex flex-col gap-5 w-full">
           
-          {/* PRIMARY ACTION CARD */}
+          {/* PRIMARY ACTION: GENERATE */}
           {!isGenerated ? (
-            <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#075B3A] text-[#F6F0E3] flex items-center justify-center shrink-0 shadow-xs">
-                  <Sparkles className="w-4 h-4 text-[#F2A900]" />
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="font-['Oswald'] font-bold text-[17px] text-[#173F32] uppercase">
-                    READY TO GENERATE?
-                  </span>
-                  <span className="font-mono text-[11px] text-[#173F32]/70">
-                    Fine-tune your details, then click Generate to create your HD frame.
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsGenerated(true)}
-                className="btn-tactile w-full h-[52px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
-              >
-                <Sparkles className="w-5 h-5 text-[#F2A900] animate-pulse" />
-                <span>GENERATE NOW</span>
-              </button>
-
-              <div className="w-full bg-[#F2E8D5] border border-[#173F32]/20 rounded-[12px] p-3 font-mono text-[11px] text-[#173F32] leading-relaxed">
-                <span className="font-bold text-[#075B3A]">⚡ LIVE PREVIEW:</span> Updates automatically while you edit your text and upload photos.
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsGenerated(true)}
+              className="btn-tactile w-full h-[52px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
+            >
+              <Sparkles className="w-5 h-5 text-[#F2A900]" />
+              <span>GENERATE NOW</span>
+            </button>
           ) : (
             <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3.5">
               
