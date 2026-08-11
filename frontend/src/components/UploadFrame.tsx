@@ -25,7 +25,6 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       if (validateFile(file)) {
@@ -47,7 +46,6 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
     const validTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif'];
     const extension = file.name.split('.').pop()?.toLowerCase();
     const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
-
     return validTypes.includes(file.type) || (extension && validExtensions.includes(extension));
   };
 
@@ -73,7 +71,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
   return (
     <div className="relative overflow-visible w-full max-w-[320px] min-[380px]:max-w-[340px] sm:max-w-[420px] lg:w-[min(420px,36vw)] xl:w-[420px] select-none mx-auto lg:mx-0">
       {/* DECORATIVE GOA BACKGROUND (BEHIND UPLOAD CARD) */}
-      <picture className="absolute z-0 pointer-events-none top-[-55px] sm:top-[-70px] lg:top-[-80px] left-1/2 -translate-x-1/2 w-[480px] min-[400px]:w-[540px] sm:w-[660px] lg:w-[760px] block">
+      <picture className="absolute z-0 pointer-events-none top-[-55px] sm:top-[-70px] lg:top-[-75px] xl:top-[-80px] left-1/2 -translate-x-1/2 w-[420px] min-[380px]:w-[480px] sm:w-[580px] lg:w-[640px] xl:w-[760px] block">
         <source type="image/avif" srcSet="/assets/goa-background-decor.avif" />
         <img
           src="/assets/goa-background-decor.avif"
@@ -86,7 +84,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
       </picture>
 
       {/* DECORATIVE CATHEDRAL TOP (BEHIND CARD, ABOVE GOA BACKGROUND) */}
-      <picture className="absolute z-1 pointer-events-none left-1/2 -translate-x-1/2 top-[-100px] min-[400px]:top-[-120px] sm:top-[-170px] lg:top-[-275px] w-[220px] min-[400px]:w-[270px] sm:w-[350px] lg:w-[420px] scale-80 origin-bottom block">
+      <picture className="absolute z-1 pointer-events-none left-1/2 -translate-x-1/2 top-[-90px] min-[380px]:top-[-110px] sm:top-[-150px] lg:top-[-220px] xl:top-[-275px] w-[200px] min-[380px]:w-[240px] sm:w-[320px] lg:w-[360px] xl:w-[420px] scale-80 origin-bottom block">
         <source type="image/avif" srcSet="/assets/goa-cathedral-top-bell-transparent.avif" />
         <img
           src="/assets/goa-cathedral-top-bell-transparent.avif"
@@ -149,7 +147,6 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
           {/* CONTENT COMPOSITION */}
           <div className="flex flex-col items-center justify-center z-10 text-center pointer-events-none">
-
             {/* UPLOAD ICON */}
             <div className="mb-[14px] sm:mb-[20px] transition-colors duration-180 ease-out" style={{ color: iconColor }}>
               <svg
@@ -216,7 +213,6 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#173F32] inline-block opacity-80" />
               <span>HEIC</span>
             </p>
-
           </div>
         </div>
       </div>

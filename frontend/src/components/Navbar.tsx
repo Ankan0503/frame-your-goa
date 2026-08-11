@@ -3,9 +3,11 @@ import { ArrowUpRight, X, Github, Linkedin } from 'lucide-react';
 
 interface NavbarProps {
   onAboutClick?: () => void;
+  onCreateIdClick?: () => void;
+  onCreateTeamClick?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, onCreateTeamClick }) => {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const handleAboutClick = () => {
@@ -23,8 +25,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
           aria-label="Main Navigation"
           className="w-full flex items-start justify-between bg-transparent"
         >
-          {/* LEFT: Logo & Subtle Vertical Divider & Signal Tagline */}
-          <div className="flex items-center">
+          {/* LEFT: Logo & Blinking Signal Dot */}
+          <div className="flex items-center gap-3">
             {/* LOGO */}
             <a
               href="/"
@@ -47,32 +49,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               />
             </a>
 
-            {/* Subtle Vertical Divider */}
+            {/* Small faint colored separator */}
             <div
               aria-hidden="true"
-              className="hidden sm:block h-9 w-[1px] bg-[#173F32]/20 mx-4 md:mx-6 shrink-0"
+              className="hidden sm:block h-9 w-[1px] bg-[#075B3A]/20 mx-2 md:mx-4 shrink-0"
             />
 
-            {/* Tagline: LESS NOISE. MORE SIGNAL. */}
-            <div className="hidden sm:flex flex-col font-mono font-medium text-[12px] leading-[1.25] tracking-[0.04em] text-[#173F32] select-none">
-              <span>LESS NOISE.</span>
-              <span className="flex items-center gap-1.5">
-                MORE SIGNAL.
-                <span
-                  aria-hidden="true"
-                  className="inline-block w-[5px] h-[5px] rounded-full bg-[#173F32] shrink-0 align-middle"
-                />
-              </span>
+            {/* HHG tagline in beige pill with green blinking dot */}
+            <div className="hidden sm:flex items-center gap-2.5 rounded-full bg-[#F8F2E6] border border-[#173F32]/10 px-3 sm:px-3.5 py-1.5 shrink-0">
+              <div className="flex flex-col font-mono font-medium text-[11px] leading-[1.25] tracking-[0.04em] text-[#173F32] select-none">
+                <span className="font-bold text-[#075B3A]">HHG / BUILD-01</span>
+                <span className="opacity-80">GOA / 2026</span>
+              </div>
+              <span
+                aria-hidden="true"
+                className="inline-block w-1.5 h-1.5 rounded-full bg-[#075B3A] shrink-0 animate-ping"
+              />
             </div>
           </div>
 
-          {/* RIGHT: Two Navigation Buttons */}
-          <div className="flex items-center gap-1.5 min-[380px]:gap-2.5 sm:gap-6 md:gap-8 shrink-0">
+          {/* RIGHT: Navigation Buttons */}
+          <div className="flex items-center gap-1.5 min-[380px]:gap-2.5 sm:gap-12 md:gap-16 shrink-0 sm:mr-8 md:mr-14">
             {/* ABOUT US BUTTON */}
             <button
               type="button"
               onClick={handleAboutClick}
-              className="h-10 min-[380px]:h-11 sm:h-[48px] px-2 min-[380px]:px-3.5 sm:px-6 bg-transparent border border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[13px] font-semibold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 active:bg-[#173F32]/10 transition-colors duration-200 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#173F32]"
+              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2 min-[380px]:px-3 sm:px-4 bg-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] text-[#173F32] hover:bg-[#173F32]/5 cursor-pointer flex items-center justify-center whitespace-nowrap focus:outline-none"
             >
               ABOUT US
             </button>
@@ -82,10 +84,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick }) => {
               href="https://hhgoa.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="h-10 min-[380px]:h-11 sm:h-[48px] px-2 min-[380px]:px-3.5 sm:px-6 bg-[#075B3A] text-[#F6F0E3] border-none rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[13px] font-semibold tracking-[0.03em] hover:bg-[#064a2f] active:bg-[#053d26] transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1 min-[380px]:gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075B3A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F0E3]"
+              className="btn-tactile h-9 min-[380px]:h-10 sm:h-[44px] px-2.5 min-[380px]:px-3 sm:px-4 bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-mono text-[10px] min-[380px]:text-[11px] sm:text-[12px] font-bold tracking-[0.03em] cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap focus:outline-none"
             >
-              <span>VISIT HHGOA.COM</span>
-              <ArrowUpRight className="w-3 h-3 min-[380px]:w-4 min-[380px]:h-4 stroke-[1.5] shrink-0" aria-hidden="true" />
+              <span>HHGOA.COM</span>
+              <ArrowUpRight className="w-3 h-3 stroke-[2] shrink-0" aria-hidden="true" />
             </a>
           </div>
         </nav>

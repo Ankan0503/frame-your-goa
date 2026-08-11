@@ -2,52 +2,49 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { GeneratorSection } from './components/GeneratorSection';
-import { CreateUploadPanel } from './components/CreateUploadPanel';
+import { StudioWorkspace, type WorkspaceMode } from './components/StudioWorkspace';
+import { ShareView } from './components/ShareView';
 import { useImageUpload } from './hooks/useImageUpload';
 
-type View = 'landing' | 'create' | 'generator';
-const viewFromPath = (): View => window.location.pathname === '/create' ? 'create' : 'landing';
+type View = 'landing' | 'studio' | 'share';
+
+const viewFromPath = (): { view: View; initialMode?: WorkspaceMode; shareId?: string } => {
+  const path = window.location.pathname;
+  if (path.startsWith('/share/')) {
+    const id = path.replace('/share/', '').trim();
+    return { view: 'share', shareId: id };
+  }
+  if (path === '/create/team') return { view: 'studio', initialMode: 'team' };
+  if (path === '/create/id' || path === '/create' || path === '/generator' || path === '/create/pfp') return { view: 'studio', initialMode: 'builder' };
+  return { view: 'landing' };
+};
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>(viewFromPath);
+  const initial = viewFromPath();
+  const [currentView, setCurrentView] = useState<View>(initial.view);
+  const [studioMode, setStudioMode] = useState<WorkspaceMode>(initial.initialMode || 'builder');
+  const [activeShareId, setActiveShareId] = useState<string | undefined>(initial.shareId);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
-  const { image, error, isProcessing, selectFile, reset } = useImageUpload();
-
-  // Control scroll: lock on landing (both axes), unlock on create/generator.
-  // Must set overflow on both <html> and <body> since <html> is the real scroll container.
-  useEffect(() => {
-    const isLanding = currentView === 'landing';
-    const lock = isLanding ? 'hidden' : '';
-    document.documentElement.style.overflow = lock;
-    document.documentElement.style.overflowX = lock;
-    document.documentElement.style.overflowY = lock;
-    document.body.style.overflow = lock;
-    document.body.style.overflowX = lock;
-    document.body.style.overflowY = lock;
-    return () => {
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.overflowX = '';
-      document.documentElement.style.overflowY = '';
-      document.body.style.overflow = '';
-      document.body.style.overflowX = '';
-      document.body.style.overflowY = '';
-    };
-  }, [currentView]);
+  const { image, selectFile } = useImageUpload();
 
   useEffect(() => {
     const onPopState = () => {
       setDirection('backward');
-      setCurrentView(viewFromPath());
+      const route = viewFromPath();
+      setCurrentView(route.view);
+      if (route.initialMode) setStudioMode(route.initialMode);
+      setActiveShareId(route.shareId);
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  const showCreate = () => {
+  const openStudio = (mode: WorkspaceMode = 'builder') => {
     setDirection('forward');
-    setCurrentView('create');
-    if (window.location.pathname !== '/create') window.history.pushState({}, '', '/create');
+    setStudioMode(mode);
+    setCurrentView('studio');
+    const path = mode === 'team' ? '/create/team' : '/create/id';
+    if (window.location.pathname !== path) window.history.pushState({}, '', path);
   };
 
   const showLanding = () => {
@@ -57,17 +54,10 @@ export default function App() {
   };
 
   const handleFileSelect = async (file: File) => {
-    if (currentView !== 'create') showCreate();
     const uploaded = await selectFile(file);
     if (uploaded) {
-      setDirection('forward');
-      setCurrentView('generator');
+      openStudio('builder');
     }
-  };
-
-  const handleBackToUpload = () => {
-    reset();
-    showCreate();
   };
 
   const slideVariants = {
@@ -77,15 +67,73 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise">
-      <Navbar />
+    <div className={`min-h-screen bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip ${currentView === 'landing' ? 'lg:h-screen lg:overflow-y-hidden' : ''}`}>
+      <Navbar
+        onCreateIdClick={() => openStudio('builder')}
+        onCreateTeamClick={() => openStudio('team')}
+      />
       <main className="relative w-full">
         <AnimatePresence mode="wait" initial={false} custom={direction}>
-          {currentView === 'landing' && <motion.div key="landing" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.45 }} className="w-full"><HeroSection onFileSelect={handleFileSelect} onCreateClick={showCreate} /></motion.div>}
-          {currentView === 'create' && <motion.div key="create" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }} className="w-full"><CreateUploadPanel isProcessing={isProcessing} error={error} onFileSelect={handleFileSelect} onBack={showLanding} /></motion.div>}
-          {currentView === 'generator' && image && <motion.div key="generator" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.45 }} className="w-full"><GeneratorSection uploadedImageUrl={image.previewUrl} onBackToUpload={handleBackToUpload} /></motion.div>}
+          {currentView === 'landing' && (
+            <motion.div
+              key="landing"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.45 }}
+              className="w-full"
+            >
+              <HeroSection
+                onFileSelect={handleFileSelect}
+                onCreateClick={() => openStudio('builder')}
+                onCreateTeamClick={() => openStudio('team')}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'studio' && (
+            <motion.div
+              key="studio"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
+              className="w-full"
+            >
+              <StudioWorkspace
+                initialMode={studioMode}
+                initialPhotoUrl={image?.previewUrl}
+                onBackToHome={showLanding}
+                onFileSelect={selectFile}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'share' && activeShareId && (
+            <motion.div
+              key="share"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
+              className="w-full"
+            >
+              <ShareView
+                shareId={activeShareId}
+                onHomeClick={showLanding}
+                onCreateYourOwnClick={() => openStudio('builder')}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
     </div>
   );
 }
+
