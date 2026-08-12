@@ -38,6 +38,7 @@ import {
   type TeamMember,
   type TeamLayout,
 } from '../lib/image/renderTeamFrame';
+import { padCanvasToLandscape } from '../lib/image/canvasUtils';
 import { ShareModal } from './ShareModal';
 import {
   calculateSmartCrop,
@@ -292,7 +293,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           builders: teamMembers,
         });
       }
-      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
+      const paddedCanvas = padCanvasToLandscape(canvas);
+      setShareDataUrl(paddedCanvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       setIsShareModalOpen(true);

@@ -19,6 +19,7 @@ import {
   type PfpStyle,
   type AspectRatio,
 } from '../lib/pfp/pfpCanvasExport';
+import { padCanvasToLandscape } from '../lib/image/canvasUtils';
 import { ShareModal } from './ShareModal';
 import { BrandedProcessingState } from './BrandedProcessingState';
 import {
@@ -86,7 +87,8 @@ export const CreatePfpSection: React.FC<CreatePfpSectionProps> = ({
         aspectRatio: selectedRatio,
         cropResult,
       });
-      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
+      const paddedCanvas = padCanvasToLandscape(canvas);
+      setShareDataUrl(paddedCanvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       // Fallback

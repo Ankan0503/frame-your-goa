@@ -5,6 +5,7 @@ import { BuilderForm, type BuilderFormData } from './BuilderForm';
 import { BuilderIdCardPreview } from './BuilderIdCardPreview';
 import { generateBuilderClass } from '../lib/builder/generateBuilderClass';
 import { renderIdCardToCanvas, downloadIdCardImage } from '../lib/builder/canvasExport';
+import { padCanvasToLandscape } from '../lib/image/canvasUtils';
 import { ShareModal } from './ShareModal';
 import { BrandedProcessingState } from './BrandedProcessingState';
 import {
@@ -63,7 +64,8 @@ export const CreateIdSection: React.FC<CreateIdSectionProps> = ({
         photoUrl,
         cropResult,
       });
-      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
+      const paddedCanvas = padCanvasToLandscape(canvas);
+      setShareDataUrl(paddedCanvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       // Fallback

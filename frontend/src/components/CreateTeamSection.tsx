@@ -22,6 +22,7 @@ import {
   type TeamLayout,
   type MultiBuilderTeamFrameData,
 } from '../lib/image/renderTeamFrame';
+import { padCanvasToLandscape } from '../lib/image/canvasUtils';
 import { ShareModal } from './ShareModal';
 import { BrandedProcessingState } from './BrandedProcessingState';
 import {
@@ -110,7 +111,8 @@ export const CreateTeamSection: React.FC<CreateTeamSectionProps> = ({
         layout: selectedLayout,
         builders,
       });
-      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
+      const paddedCanvas = padCanvasToLandscape(canvas);
+      setShareDataUrl(paddedCanvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       // Fallback
