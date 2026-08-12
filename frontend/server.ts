@@ -1,7 +1,6 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { TwitterApi } from 'twitter-api-v2';
 
@@ -562,6 +561,7 @@ async function startServer() {
 
   // Vite Integration (Dev vs Prod)
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     viteInstance = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
