@@ -232,8 +232,16 @@ async function startServer() {
   }
   const PORT = parsedPort;
 
-  // Body parser with 25MB limit for high-res PNG canvas exports
-  app.use(express.json({ limit: '25mb' }));
+  // Body parser with 25MB limit for high-res PNG canvas exports.
+  // Note: Vercel serverless runtime automatically parses the request body. We must
+  // avoid running express.json() if req.body is already defined, otherwise body-parser
+  // will attempt to read a consumed request stream and throw "stream is not readable".
+  app.use((req, res, next) => {
+    if (req.body !== undefined) {
+      return next();
+    }
+    express.json({ limit: '25mb' })(req, res, next);
+  });
 
   // Helper to resolve request host & protocol for public URLs
   const getBaseUrl = (req: express.Request) => {
@@ -579,10 +587,11 @@ async function startServer() {
     }
   };
 
-  // Vite Integration (Dev only). Never load Vite inside the Vercel serverless function —
+  // Vite Integration (Dev only). Never load Vite inside the Vercel serverless function.
   // Vite bundles native binaries (rollup/esbuild) that crash in the serverless sandbox.
-  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    const { createServer: createViteServer } = await import('vite');
+  if (process.env.NODE_ENV !== 'production') {
+    const viteModuleName = 'vite';
+    const { createServer: createViteServer } = await import(viteModuleName);
     viteInstance = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -605,7 +614,13 @@ async function startServer() {
     });
   }
 
-  if (!process.env.VERCEL) {
+  const isStandalone = process.argv[1] && (
+    process.argv[1].endsWith('server.ts') ||
+    process.argv[1].endsWith('server.js') ||
+    process.argv[1].endsWith('server.cjs')
+  );
+
+  if (isStandalone) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`HH Goa 2026 Share Server running on http://0.0.0.0:${PORT}`);
     });
