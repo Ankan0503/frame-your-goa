@@ -110,7 +110,7 @@ export const CreateTeamSection: React.FC<CreateTeamSectionProps> = ({
         layout: selectedLayout,
         builders,
       });
-      setShareDataUrl(canvas.toDataURL('image/png', 1.0));
+      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       // Fallback

@@ -292,7 +292,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           builders: teamMembers,
         });
       }
-      setShareDataUrl(canvas.toDataURL('image/png', 1.0));
+      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       setIsShareModalOpen(true);

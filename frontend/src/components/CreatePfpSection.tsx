@@ -86,7 +86,7 @@ export const CreatePfpSection: React.FC<CreatePfpSectionProps> = ({
         aspectRatio: selectedRatio,
         cropResult,
       });
-      setShareDataUrl(canvas.toDataURL('image/png', 1.0));
+      setShareDataUrl(canvas.toDataURL('image/jpeg', 0.85));
       setIsShareModalOpen(true);
     } catch {
       // Fallback
