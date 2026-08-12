@@ -7,6 +7,26 @@ import { TwitterApi } from 'twitter-api-v2';
 // Reload environment variables with new X credentials
 dotenv.config();
 
+// Resolve the built frontend folder robustly (Vercel sandbox vs local).
+// Avoids import.meta.url — it is undefined when bundled to CommonJS by Vercel.
+function resolveDistDir(): string {
+  const cwd = process.cwd();
+  const candidates = [
+    path.join(cwd, 'dist'),
+    path.join(cwd, '..', 'dist'),
+    path.join(cwd, 'frontend', 'dist'),
+    path.join(cwd, '..', 'frontend', 'dist'),
+  ];
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(path.join(candidate, 'index.html'))) return candidate;
+    } catch {
+      // ignore
+    }
+  }
+  return candidates[0];
+}
+
 const X_API_KEY = process.env.X_API_KEY || '';
 const X_API_SECRET = process.env.X_API_SECRET || '';
 const X_CALLBACK_URL = process.env.X_CALLBACK_URL || '';
@@ -534,12 +554,12 @@ async function startServer() {
   // Explicit handler for /share/* route to serve HTML with OG tags before static/vite fallback
   app.get(['/share/*', '/share'], async (req, res, next) => {
     try {
-      if (process.env.NODE_ENV !== 'production' && viteInstance) {
+      if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && viteInstance) {
         let template = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
         template = await viteInstance.transformIndexHtml(req.originalUrl, template);
         return await renderHtmlWithOgTags(req, res, template);
       } else {
-        const distPath = path.join(process.cwd(), 'dist');
+        const distPath = resolveDistDir();
         const template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
         return await renderHtmlWithOgTags(req, res, template);
       }
@@ -559,8 +579,9 @@ async function startServer() {
     }
   };
 
-  // Vite Integration (Dev vs Prod)
-  if (process.env.NODE_ENV !== 'production') {
+  // Vite Integration (Dev only). Never load Vite inside the Vercel serverless function —
+  // Vite bundles native binaries (rollup/esbuild) that crash in the serverless sandbox.
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const { createServer: createViteServer } = await import('vite');
     viteInstance = await createViteServer({
       server: { middlewareMode: true },
@@ -571,7 +592,7 @@ async function startServer() {
     app.use(express.static(path.join(process.cwd(), 'public'), staticOptions));
     app.use(viteInstance.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = resolveDistDir();
     app.use(express.static(distPath, { index: false, ...staticOptions }));
 
     app.get('*', async (req, res) => {
