@@ -3,17 +3,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { StudioWorkspace, type WorkspaceMode } from './components/StudioWorkspace';
-import { ShareView } from './components/ShareView';
 import { useImageUpload } from './hooks/useImageUpload';
 
-type View = 'landing' | 'studio' | 'share';
+type View = 'landing' | 'studio';
 
-const viewFromPath = (): { view: View; initialMode?: WorkspaceMode; shareId?: string } => {
+const viewFromPath = (): { view: View; initialMode?: WorkspaceMode } => {
   const path = window.location.pathname;
-  if (path.startsWith('/share/')) {
-    const id = path.replace('/share/', '').trim();
-    return { view: 'share', shareId: id };
-  }
   if (path === '/create/team') return { view: 'studio', initialMode: 'team' };
   if (path === '/create/id' || path === '/create' || path === '/generator' || path === '/create/pfp') return { view: 'studio', initialMode: 'builder' };
   return { view: 'landing' };
@@ -23,7 +18,6 @@ export default function App() {
   const initial = viewFromPath();
   const [currentView, setCurrentView] = useState<View>(initial.view);
   const [studioMode, setStudioMode] = useState<WorkspaceMode>(initial.initialMode || 'builder');
-  const [activeShareId, setActiveShareId] = useState<string | undefined>(initial.shareId);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const { image, selectFile } = useImageUpload();
 
@@ -33,7 +27,6 @@ export default function App() {
       const route = viewFromPath();
       setCurrentView(route.view);
       if (route.initialMode) setStudioMode(route.initialMode);
-      setActiveShareId(route.shareId);
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
@@ -109,25 +102,6 @@ export default function App() {
                 initialPhotoUrl={image?.previewUrl}
                 onBackToHome={showLanding}
                 onFileSelect={selectFile}
-              />
-            </motion.div>
-          )}
-
-          {currentView === 'share' && activeShareId && (
-            <motion.div
-              key="share"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
-              className="w-full"
-            >
-              <ShareView
-                shareId={activeShareId}
-                onHomeClick={showLanding}
-                onCreateYourOwnClick={() => openStudio('builder')}
               />
             </motion.div>
           )}

@@ -7,7 +7,6 @@ import {
   Copy,
   Check,
   Sparkles,
-  ExternalLink,
   Loader2,
 } from 'lucide-react';
 import { createShare, type ShareResponse } from '../lib/share/createShare';
@@ -23,6 +22,8 @@ interface ShareModalProps {
   type?: 'builder' | 'pfp' | 'team';
 }
 
+type PostState = 'idle' | 'authorizing' | 'posted' | 'error';
+
 export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
   onClose,
@@ -35,10 +36,17 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [shareData, setShareData] = useState<ShareResponse | null>(null);
   const [caption, setCaption] = useState<string>(DEFAULT_X_CAPTION);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [postState, setPostState] = useState<PostState>('idle');
+  const [tweetUrl, setTweetUrl] = useState<string>('');
+  const [postError, setPostError] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('modal-share-open');
+      setPostState('idle');
+      setPostError('');
+      setTweetUrl('');
+      setCopySuccess(false);
     } else {
       document.body.classList.remove('modal-share-open');
     }
@@ -72,6 +80,21 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     }
   }, [isOpen, imageDataUrl, title, description, type]);
 
+  useEffect(() => {
+    const onXPostMessage = (e: MessageEvent) => {
+      if (!e.data || e.data.type !== 'X_POST_RESULT') return;
+      if (e.data.status === 'success') {
+        setTweetUrl(e.data.tweetUrl || '');
+        setPostState('posted');
+      } else {
+        setPostError(e.data.message || 'Failed to post to X');
+        setPostState('error');
+      }
+    };
+    window.addEventListener('message', onXPostMessage);
+    return () => window.removeEventListener('message', onXPostMessage);
+  }, []);
+
   if (!isOpen) return null;
 
   const handleCopy = () => {
@@ -81,12 +104,42 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     setTimeout(() => setCopySuccess(false), 2500);
   };
 
-  const handleLaunchXIntent = () => {
+  const handlePostToX = async () => {
     if (!shareData) return;
-    openXIntent({
-      text: caption,
-      url: shareData.shareUrl,
-    });
+    setPostState('authorizing');
+    setPostError('');
+    setTweetUrl('');
+
+    try {
+      const res = await fetch('/api/x/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shareId: shareData.shareId, caption }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || 'Could not start X authorization');
+      }
+
+      const { authorizeUrl } = await res.json();
+      const width = 600;
+      const height = 680;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      window.open(
+        authorizeUrl,
+        'post_to_x',
+        `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+      );
+    } catch (err: any) {
+      // Fall back to classic intent if the media-posting API is unavailable
+      openXIntent({ text: caption, url: shareData.shareUrl });
+      setPostState('error');
+      setPostError(
+        err?.message || 'Media posting unavailable — opened classic share instead'
+      );
+    }
   };
 
   return createPortal(
@@ -165,44 +218,86 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
               {/* ACTION BUTTONS */}
               <div className="space-y-3 pt-1">
-                <button
-                  type="button"
-                  onClick={handleLaunchXIntent}
-                  className="btn-tactile w-full h-[50px] bg-[#173F32] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2.5 hover:bg-[#075B3A] cursor-pointer"
-                >
-                  <Share2 className="w-5 h-5 text-[#F2A900]" />
-                  <span>POST ON X NOW</span>
-                </button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="btn-tactile h-[44px] bg-[#F6F0E3] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[13px] uppercase flex items-center justify-center gap-2 hover:bg-[#173F32]/5 cursor-pointer"
-                  >
-                    {copySuccess ? (
-                      <>
-                        <Check className="w-4 h-4 text-[#075B3A]" />
-                        <span>COPIED LINK!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 text-[#075B3A]" />
-                        <span>COPY LINK</span>
-                      </>
+                {postState === 'posted' ? (
+                  <div className="bg-[#075B3A]/10 border-2 border-[#075B3A] rounded-[12px] p-4 flex flex-col items-center gap-3 text-center">
+                    <Check className="w-8 h-8 text-[#075B3A]" />
+                    <div>
+                      <div className="font-['Oswald'] font-bold text-[18px] text-[#173F32] uppercase">
+                        POSTED TO X!
+                      </div>
+                      <div className="font-mono text-[12px] text-[#123B35] mt-1">
+                        Your builder pass is live with the attached image.
+                      </div>
+                    </div>
+                    {tweetUrl && (
+                      <a
+                        href={tweetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-tactile w-full h-[46px] bg-[#173F32] text-[#F6F0E3] rounded-[10px] font-['Oswald'] font-bold text-[14px] uppercase flex items-center justify-center gap-2 hover:bg-[#075B3A] cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4 text-[#F2A900]" />
+                        <span>VIEW TWEET</span>
+                      </a>
                     )}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="btn-tactile w-full h-[44px] bg-[#F6F0E3] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[13px] uppercase hover:bg-[#173F32]/5 cursor-pointer"
+                    >
+                      DONE
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handlePostToX}
+                      disabled={postState === 'authorizing'}
+                      className="btn-tactile w-full h-[50px] bg-[#173F32] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[17px] uppercase tracking-wider flex items-center justify-center gap-2.5 hover:bg-[#075B3A] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {postState === 'authorizing' ? (
+                        <>
+                          <Loader2 className="w-5 h-5 text-[#F2A900] animate-spin" />
+                          <span>CONNECTING TO X...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-5 h-5 text-[#F2A900]" />
+                          <span>POST ON X NOW</span>
+                        </>
+                      )}
+                    </button>
 
-                  <a
-                    href={shareData?.shareUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-tactile h-[44px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[13px] uppercase flex items-center justify-center gap-2 hover:bg-[#0B6839] cursor-pointer"
-                  >
-                    <ExternalLink className="w-4 h-4 text-[#F2A900]" />
-                    <span>VIEW PAGE</span>
-                  </a>
-                </div>
+                    {postState === 'error' && (
+                      <div className="bg-[#F05A68]/10 border border-[#F05A68] rounded-[10px] px-3 py-2 font-mono text-[11px] text-[#173F32]">
+                        {postError}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {postState !== 'posted' && (
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="btn-tactile h-[44px] bg-[#F6F0E3] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[13px] uppercase flex items-center justify-center gap-2 hover:bg-[#173F32]/5 cursor-pointer"
+                    >
+                      {copySuccess ? (
+                        <>
+                          <Check className="w-4 h-4 text-[#075B3A]" />
+                          <span>COPIED LINK!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 text-[#075B3A]" />
+                          <span>COPY LINK</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}

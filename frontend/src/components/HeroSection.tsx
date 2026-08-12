@@ -145,6 +145,185 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
       <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-0 lg:translate-y-6 lg:-translate-x-12">
         <UploadFrame onFileSelect={onFileSelect} />
       </div>
+
+      {/* SAILBOAT DOODLE (VINTAGE SKETCHBOOK STYLE) */}
+      <div 
+        className="absolute pointer-events-none z-10 hidden lg:block lg:left-[42%] xl:left-[590px] lg:bottom-[45px] xl:bottom-[65px] w-[110px] h-[70px] opacity-85"
+        style={{
+          transform: 'rotate(-4deg)',
+        }}
+      >
+        <svg
+          viewBox="0 0 110 70"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
+        >
+          {/* Triangular Sail - Hand-drawn look */}
+          <path
+            d="M 54 12 C 58 20, 68 32, 76 40 C 70 42, 62 41, 56 41 C 56 31, 55.5 21, 54 12 Z"
+            stroke="#0B6545"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.9"
+            fill="none"
+          />
+
+          {/* Mast */}
+          <path
+            d="M 54 44 C 54.5 32, 53.5 22, 54 10"
+            stroke="#0B6545"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeOpacity="0.9"
+          />
+
+          {/* Coral Accent Mark on Sail */}
+          <path
+            d="M 62 26 Q 64 28, 63 31"
+            stroke="#F15B63"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeOpacity="0.85"
+          />
+
+          {/* Wooden Hull - 3 loose horizontal strokes */}
+          <path
+            d="M 22 43 C 40 43, 60 43, 88 43"
+            stroke="#0B6545"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.9"
+          />
+          <path
+            d="M 28 47 C 42 47, 62 47, 80 46"
+            stroke="#0B6545"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeOpacity="0.85"
+          />
+          <path
+            d="M 24 43 C 32 48, 42 51, 55 51 C 68 51, 78 48, 86 43"
+            stroke="#0B6545"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.9"
+          />
+
+          {/* Waves underneath - 2 loose lines */}
+          <path
+            d="M 20 57 C 28 59, 34 56, 42 58 C 50 60, 56 57, 64 58 C 72 59, 78 57, 86 58"
+            stroke="#0B6545"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.8"
+          />
+          <path
+            d="M 28 62 C 36 60, 42 63, 50 61 C 58 59, 64 62, 72 61 C 78 60, 84 62, 90 61"
+            stroke="#0B6545"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.85"
+          />
+        </svg>
+      </div>
+
+      {/* FLYING BIRDS DOODLES (VINTAGE SKETCHBOOK STYLE) */}
+      <div 
+        className="absolute pointer-events-none z-10 hidden lg:block lg:left-[45%] xl:left-[610px] lg:top-[50px] xl:top-[80px] w-[240px] h-[180px]"
+      >
+        <svg
+          viewBox="0 0 240 180"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
+        >
+          {/* Bird 1: Largest, widest and most open wing curve (W: 56px, H: 22px) */}
+          <path
+            d="M 42 66 C 48 46, 56 43, 70 56"
+            stroke="#000000"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 71 56.5 C 80 43, 88 46, 98 65"
+            stroke="#000000"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Bird 2: Medium, left wing slightly higher (W: 46px, H: 20px) */}
+          <path
+            d="M 112 43 C 118 25, 124 23, 134 32"
+            stroke="#000000"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 134.8 32.5 C 144 23, 150 25, 158 44"
+            stroke="#000000"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Bird 3: Medium-small, both wings raised slightly (W: 38px, H: 20px) */}
+          <path
+            d="M 72 124 C 77 104, 83 103, 90 112"
+            stroke="#000000"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 90.8 112.5 C 98 103, 104 104, 110 123"
+            stroke="#000000"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Bird 4: Tiny, tight compact shape (W: 28px, H: 14px) */}
+          <path
+            d="M 161 94 C 165 80, 169 79, 174 86"
+            stroke="#000000"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 174.6 86.4 C 180 79, 184 80, 189 94"
+            stroke="#000000"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Bird 5: Small, very shallow horizontal wing curve (W: 34px, H: 11px) */}
+          <path
+            d="M 21 139 C 26 128, 31 128, 37.5 133"
+            stroke="#000000"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 38 133 C 44 128, 50 128, 55 139"
+            stroke="#000000"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
     </section>
   );
 };

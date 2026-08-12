@@ -3,8 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
+import { TwitterApi } from 'twitter-api-v2';
 
+// Reload environment variables with new X credentials
 dotenv.config();
+
+const X_API_KEY = process.env.X_API_KEY || '';
+const X_API_SECRET = process.env.X_API_SECRET || '';
+const X_CALLBACK_URL = process.env.X_CALLBACK_URL || '';
 
 // Register image/avif mime type globally if the express static mime registry is available
 try {
@@ -29,6 +35,81 @@ interface ShareRecord {
 const shareStore = new Map<string, ShareRecord>();
 const MAX_SHARE_ENTRIES = 500;
 const TTL_MS = 72 * 60 * 60 * 1000; // 72 Hours Expiration
+
+// Pending X (Twitter) 3-legged OAuth posts awaiting user authorization
+interface PendingXPost {
+  shareId?: string;
+  imageDataUrl?: string;
+  caption: string;
+  oauthTokenSecret: string;
+  createdAt: number;
+}
+const xAuthStore = new Map<string, PendingXPost>();
+const X_AUTH_TTL_MS = 10 * 60 * 1000; // 10 Minutes to complete authorization
+const MAX_X_AUTH_ENTRIES = 200;
+
+function cleanupXAuth() {
+  const now = Date.now();
+  for (const [token, pending] of xAuthStore.entries()) {
+    if (now - pending.createdAt > X_AUTH_TTL_MS) {
+      xAuthStore.delete(token);
+    }
+  }
+  if (xAuthStore.size > MAX_X_AUTH_ENTRIES) {
+    const oldestKeys = Array.from(xAuthStore.keys()).slice(
+      0,
+      xAuthStore.size - MAX_X_AUTH_ENTRIES
+    );
+    for (const key of oldestKeys) {
+      xAuthStore.delete(key);
+    }
+  }
+}
+
+// Periodic cleanup task every 10 mins
+setInterval(cleanupXAuth, 10 * 60 * 1000);
+
+function createXAppClient(): TwitterApi | null {
+  if (!X_API_KEY || !X_API_SECRET) return null;
+  return new TwitterApi({ appKey: X_API_KEY, appSecret: X_API_SECRET });
+}
+
+function buildXPostResultHtml(result: {
+  status: 'success' | 'error';
+  tweetUrl?: string;
+  message?: string;
+}): string {
+  const heading =
+    result.status === 'success' ? 'Posted to X!' : 'Post failed';
+  const message =
+    result.status === 'success'
+      ? 'Your builder pass was posted to X.'
+      : result.message || 'Something went wrong while posting to X.';
+  const payload = JSON.stringify(result).replace(/<\//g, '<\\/');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="robots" content="noindex" />
+  <title>${heading}</title>
+</head>
+<body style="font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#F6F0E3;color:#173F32">
+  <div style="text-align:center;max-width:420px;padding:24px">
+    <div style="font-size:44px;line-height:1">${result.status === 'success' ? '✅' : '⚠️'}</div>
+    <h1 style="font-size:22px;margin:14px 0 8px">${heading}</h1>
+    <p style="font-size:14px;opacity:0.8;margin:0 0 20px">${message}</p>
+    <p style="font-size:12px;opacity:0.6;margin:0">You can close this window now.</p>
+  </div>
+  <script>
+    (function () {
+      try { window.opener.postMessage(${payload}, '*'); } catch (e) {}
+      setTimeout(function () { window.close(); }, 900);
+    })();
+  </script>
+</body>
+</html>`;
+}
 
 function cleanupExpiredShares() {
   const now = Date.now();
@@ -183,7 +264,124 @@ async function startServer() {
     return res.send(record.imageBuffer);
   });
 
-  // 4. HTML Handler with Open Graph Tag Injection for /share/:id
+  // 4a. POST /api/x/post - Begin 3-legged OAuth to post a generated pass to the visitor's X account
+  app.post('/api/x/post', async (req, res) => {
+    const { shareId, imageDataUrl, caption } = req.body || {};
+    if (!shareId && !imageDataUrl) {
+      return res.status(400).json({ error: 'Missing shareId or imageDataUrl' });
+    }
+    const text = String(caption || '').trim();
+    if (!text) {
+      return res.status(400).json({ error: 'Missing caption' });
+    }
+
+    const appClient = createXAppClient();
+    if (!appClient) {
+      return res
+        .status(501)
+        .json({ error: 'X API credentials not configured on the server' });
+    }
+
+    try {
+      const callbackUrl =
+        X_CALLBACK_URL || `${getBaseUrl(req)}/api/x/callback`;
+      const authLink = await appClient.generateAuthLink(callbackUrl);
+
+      xAuthStore.set(authLink.oauth_token, {
+        shareId,
+        imageDataUrl,
+        caption: text,
+        oauthTokenSecret: authLink.oauth_token_secret,
+        createdAt: Date.now(),
+      });
+
+      return res.json({ authorizeUrl: authLink.url });
+    } catch (err: any) {
+      console.error('Error starting X authorization:', err);
+      return res
+        .status(500)
+        .json({ error: 'Failed to start X authorization' });
+    }
+  });
+
+  // 4b. GET /api/x/callback - Complete OAuth, upload pass media & post the tweet
+  app.get('/api/x/callback', async (req, res) => {
+    const { oauth_token, oauth_verifier } = req.query;
+    if (!oauth_token || !oauth_verifier) {
+      return res.status(400).send('Missing OAuth parameters');
+    }
+
+    const token = String(oauth_token);
+    const pending = xAuthStore.get(token);
+    if (!pending) {
+      return res
+        .status(400)
+        .send('X authorization request expired. Please try again.');
+    }
+
+    const respondWithError = (message: string) => {
+      xAuthStore.delete(token);
+      res
+        .status(200)
+        .set({ 'Content-Type': 'text/html' })
+        .send(buildXPostResultHtml({ status: 'error', message }));
+    };
+
+    try {
+      const requestClient = new TwitterApi({
+        appKey: X_API_KEY,
+        appSecret: X_API_SECRET,
+        accessToken: token,
+        accessSecret: pending.oauthTokenSecret,
+      });
+      const loginResult = await requestClient.login(String(oauth_verifier));
+      const userClient = loginResult.client;
+      console.log('X OAuth step OK: access token exchanged');
+
+      let imageBuffer: Buffer | null = null;
+      if (pending.shareId) {
+        const record = shareStore.get(pending.shareId);
+        if (record) imageBuffer = record.imageBuffer;
+      }
+      if (!imageBuffer && pending.imageDataUrl) {
+        const base64 = pending.imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+        imageBuffer = Buffer.from(base64, 'base64');
+      }
+      if (!imageBuffer) {
+        return respondWithError('Pass image was not found or has expired.');
+      }
+
+      const mediaId = await userClient.v1.uploadMedia(imageBuffer, {
+        mimeType: 'image/png',
+      });
+      console.log('X OAuth step OK: media uploaded, media_id', mediaId);
+
+      const truncatedCaption =
+        pending.caption.length > 280
+          ? `${pending.caption.slice(0, 277)}...`
+          : pending.caption;
+
+      const tweet = await userClient.v2.tweet(truncatedCaption, {
+        media: { media_ids: [mediaId] },
+      });
+      console.log('X OAuth step OK: tweet posted, id', tweet.data.id);
+
+      const tweetUrl = `https://x.com/i/web/status/${tweet.data.id}`;
+
+      xAuthStore.delete(token);
+      res
+        .status(200)
+        .set({ 'Content-Type': 'text/html' })
+        .send(buildXPostResultHtml({ status: 'success', tweetUrl }));
+    } catch (err: any) {
+      const step = err && err.message ? String(err.message) : 'Failed to post to X';
+      const apiData = err && err.data ? JSON.stringify(err.data) : '';
+      console.error(`Error posting to X (${step})`, apiData);
+      respondWithError(`${step}${apiData ? ` — ${apiData}` : ''}`);
+    }
+  });
+
+  // 5. HTML Handler with Open Graph Tag Injection for /share/:id
   const renderHtmlWithOgTags = async (req: express.Request, res: express.Response, rawHtml: string) => {
     const requestPath = req.originalUrl || req.path;
     const shareIdMatch = requestPath.match(/^\/share\/([a-zA-Z0-9_-]+)/);

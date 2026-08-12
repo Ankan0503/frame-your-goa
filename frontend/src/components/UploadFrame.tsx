@@ -230,7 +230,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
       {/* DECORATIVE MINT GOA SCOOTER (FOREGROUND OVERLAY) */}
       <div
-        className="absolute z-10 pointer-events-none -left-[70px] min-[400px]:-left-[90px] sm:-left-[130px] lg:-left-[220px] -bottom-[30px] min-[400px]:-bottom-[35px] sm:-bottom-[45px] lg:-bottom-[40px] w-[190px] min-[400px]:w-[230px] sm:w-[310px] lg:w-[390px] flex flex-col items-center"
+        className="absolute z-10 pointer-events-none -left-[50px] min-[400px]:-left-[65px] sm:-left-[95px] lg:-left-[165px] -bottom-[25px] min-[400px]:-bottom-[30px] sm:-bottom-[35px] lg:-bottom-[30px] w-[150px] min-[400px]:w-[185px] sm:w-[240px] lg:w-[300px] flex flex-col items-center"
         aria-hidden="true"
       >
         {/* Subtle warm/green halo glow behind the scooter */}
@@ -301,17 +301,62 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
         </picture>
       </div>
 
-      {/* HH GOA SUN (LEFT SIDE AT A DIAGONAL ANGLE) */}
-      <picture className="absolute z-10 pointer-events-none -left-[15px] min-[380px]:-left-[20px] sm:-left-[40px] lg:left-[20px] xl:-left-[280px] -top-[28%] w-[110px] min-[380px]:w-[125px] sm:w-[180px] block transform -rotate-[13deg]">
-        <source type="image/avif" srcSet="/assets/HH_Goa_sun.avif" />
-        <img
-          src="/assets/HH_Goa_sun.avif"
-          alt="HH Goa Sun"
-          referrerPolicy="no-referrer"
-          className="w-full h-auto object-contain pointer-events-none"
-          loading="lazy"
-        />
-      </picture>
+      {/* HH GOA SUN (LEFT SIDE AT A DIAGONAL ANGLE) WITH OVERLAID BLACK BIRDS */}
+      <div className="absolute z-10 pointer-events-none -left-[15px] min-[380px]:-left-[20px] sm:-left-[40px] lg:left-[20px] xl:-left-[330px] -top-[28%] w-[110px] min-[380px]:w-[125px] sm:w-[250px] block transform -rotate-[13deg]">
+        <picture className="w-full h-full block">
+          <source type="image/avif" srcSet="/assets/HH_Goa_sun.avif" />
+          <img
+            src="/assets/HH_Goa_sun.avif"
+            alt="HH Goa Sun"
+            referrerPolicy="no-referrer"
+            className="w-full h-auto object-contain pointer-events-none"
+            loading="lazy"
+          />
+        </picture>
+        {/* TWO BLACK BIRDS OVER THE SUN (VINTAGE SKETCH STYLE) */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center">
+          <svg
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full"
+          >
+            <g style={{ transform: 'scale(0.65)', transformOrigin: '50% 50%' }}>
+              {/* Bird 1: Over the upper-middle region of the sun */}
+              <path
+                d="M 25 45 C 32 30, 39 28, 48 37"
+                stroke="#000000"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 48.6 37.5 C 57 28, 64 30, 71 45"
+                stroke="#000000"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+
+              {/* Bird 2: Over the lower-right region of the sun */}
+              <path
+                d="M 52 68 C 57 56, 62 55, 69 62"
+                stroke="#000000"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 69.5 62.4 C 76 55, 81 56, 86 68"
+                stroke="#000000"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 };
