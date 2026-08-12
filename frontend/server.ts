@@ -23,7 +23,8 @@ try {
 
 interface ShareRecord {
   id: string;
-  imageBuffer: Buffer;
+  imageBuffer?: Buffer;
+  blobImageUrl?: string;
   title: string;
   description: string;
   type: string;
@@ -47,6 +48,43 @@ interface PendingXPost {
 const xAuthStore = new Map<string, PendingXPost>();
 const X_AUTH_TTL_MS = 10 * 60 * 1000; // 10 Minutes to complete authorization
 const MAX_X_AUTH_ENTRIES = 200;
+
+async function getShareRecord(id: string): Promise<ShareRecord | null> {
+  const local = shareStore.get(id);
+  if (local) return local;
+
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (token) {
+    try {
+      const { list } = await import('@vercel/blob');
+      const { blobs } = await list({
+        prefix: `shares/${id}`,
+        token,
+      });
+
+      const jsonBlob = blobs.find(b => b.pathname.endsWith('.json'));
+      const pngBlob = blobs.find(b => b.pathname.endsWith('.png'));
+
+      if (jsonBlob && pngBlob) {
+        const response = await fetch(jsonBlob.url);
+        if (response.ok) {
+          const meta = await response.json();
+          return {
+            id,
+            blobImageUrl: pngBlob.url,
+            title: meta.title || '',
+            description: meta.description || '',
+            type: meta.type || 'builder',
+            createdAt: meta.createdAt || Date.now(),
+          };
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching share record from Vercel Blob:', err);
+    }
+  }
+  return null;
+}
 
 function cleanupXAuth() {
   const now = Date.now();
@@ -85,7 +123,7 @@ function buildXPostResultHtml(result: {
     result.status === 'success'
       ? 'Your builder pass was posted to X.'
       : result.message || 'Something went wrong while posting to X.';
-  const payload = JSON.stringify(result).replace(/<\//g, '<\\/');
+  const payload = JSON.stringify({ ...result, type: 'X_POST_RESULT' }).replace(/<\//g, '<\\/');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -184,7 +222,7 @@ async function startServer() {
   };
 
   // 1. POST /api/share - Upload generated graphic and return unique share link
-  app.post('/api/share', (req, res) => {
+  app.post('/api/share', async (req, res) => {
     try {
       const { imageDataUrl, title, description, type, metadata } = req.body;
 
@@ -201,9 +239,40 @@ async function startServer() {
       const id = `hhg-${Math.random().toString(36).substring(2, 10)}`;
       const baseUrl = getBaseUrl(req);
 
+      let blobImageUrl = '';
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      if (token) {
+        try {
+          const { put } = await import('@vercel/blob');
+          const pngBlob = await put(`shares/${id}.png`, imageBuffer, {
+            access: 'public',
+            token,
+            contentType: 'image/png',
+          });
+          blobImageUrl = pngBlob.url;
+
+          const metadataString = JSON.stringify({
+            id,
+            title: title || 'HH Goa 2026 Builder Pass',
+            description: description || 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
+            type: type || 'builder',
+            createdAt: Date.now(),
+          });
+          await put(`shares/${id}.json`, Buffer.from(metadataString), {
+            access: 'public',
+            token,
+            contentType: 'application/json',
+          });
+          console.log('Saved to Vercel Blob successfully:', id);
+        } catch (blobErr) {
+          console.error('Error saving to Vercel Blob:', blobErr);
+        }
+      }
+
       const record: ShareRecord = {
         id,
         imageBuffer,
+        blobImageUrl,
         title: title || 'HH Goa 2026 Builder Pass',
         description:
           description || 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
@@ -215,7 +284,7 @@ async function startServer() {
       shareStore.set(id, record);
 
       const shareUrl = `${baseUrl}/share/${id}`;
-      const imageUrl = `${baseUrl}/api/share/image/${id}.png`;
+      const imageUrl = blobImageUrl || `${baseUrl}/api/share/image/${id}.png`;
 
       return res.json({
         shareId: id,
@@ -232,8 +301,8 @@ async function startServer() {
   });
 
   // 2. GET /api/share/:id - Retrieve share metadata
-  app.get('/api/share/:id', (req, res) => {
-    const record = shareStore.get(req.params.id);
+  app.get('/api/share/:id', async (req, res) => {
+    const record = await getShareRecord(req.params.id);
     if (!record) {
       return res.status(404).json({ error: 'Share ID not found or expired' });
     }
@@ -242,7 +311,7 @@ async function startServer() {
     return res.json({
       shareId: record.id,
       shareUrl: `${baseUrl}/share/${record.id}`,
-      imageUrl: `${baseUrl}/api/share/image/${record.id}.png`,
+      imageUrl: record.blobImageUrl || `${baseUrl}/api/share/image/${record.id}.png`,
       title: record.title,
       description: record.description,
       type: record.type,
@@ -251,17 +320,25 @@ async function startServer() {
   });
 
   // 3. GET /api/share/image/:id.png - Serve raw image PNG for Open Graph crawlers & previews
-  app.get('/api/share/image/:id.png', (req, res) => {
+  app.get('/api/share/image/:id.png', async (req, res) => {
     const rawId = req.params.id.replace(/\.png$/, '');
-    const record = shareStore.get(rawId);
+    const record = await getShareRecord(rawId);
 
     if (!record) {
       return res.status(404).send('Image not found or expired');
     }
 
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
-    return res.send(record.imageBuffer);
+    if (record.blobImageUrl) {
+      return res.redirect(record.blobImageUrl);
+    }
+
+    if (record.imageBuffer) {
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+      return res.send(record.imageBuffer);
+    }
+
+    return res.status(404).send('Image buffer not available');
   });
 
   // 4a. POST /api/x/post - Begin 3-legged OAuth to post a generated pass to the visitor's X account
@@ -340,8 +417,21 @@ async function startServer() {
 
       let imageBuffer: Buffer | null = null;
       if (pending.shareId) {
-        const record = shareStore.get(pending.shareId);
-        if (record) imageBuffer = record.imageBuffer;
+        const record = await getShareRecord(pending.shareId);
+        if (record) {
+          if (record.imageBuffer) {
+            imageBuffer = record.imageBuffer;
+          } else if (record.blobImageUrl) {
+            try {
+              const imgRes = await fetch(record.blobImageUrl);
+              if (imgRes.ok) {
+                imageBuffer = Buffer.from(await imgRes.arrayBuffer());
+              }
+            } catch (fetchErr) {
+              console.error('Error fetching image from blob URL:', fetchErr);
+            }
+          }
+        }
       }
       if (!imageBuffer && pending.imageDataUrl) {
         const base64 = pending.imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
@@ -351,10 +441,18 @@ async function startServer() {
         return respondWithError('Pass image was not found or has expired.');
       }
 
-      const mediaId = await userClient.v1.uploadMedia(imageBuffer, {
+      const mediaUploadResult = await userClient.v1.uploadMedia(imageBuffer, {
         mimeType: 'image/png',
       });
-      console.log('X OAuth step OK: media uploaded, media_id', mediaId);
+      console.log('X OAuth step OK: media uploaded, result:', mediaUploadResult);
+
+      const mediaIdStr = typeof mediaUploadResult === 'string' 
+        ? mediaUploadResult 
+        : (mediaUploadResult as any).media_id_string;
+
+      if (!mediaIdStr) {
+        throw new Error('Failed to retrieve media_id_string from upload response');
+      }
 
       const truncatedCaption =
         pending.caption.length > 280
@@ -362,7 +460,7 @@ async function startServer() {
           : pending.caption;
 
       const tweet = await userClient.v2.tweet(truncatedCaption, {
-        media: { media_ids: [mediaId] },
+        media: { media_ids: [mediaIdStr] },
       });
       console.log('X OAuth step OK: tweet posted, id', tweet.data.id);
 
@@ -394,11 +492,11 @@ async function startServer() {
     let ogUrl = `${baseUrl}${requestPath}`;
 
     if (shareId) {
-      const record = shareStore.get(shareId);
+      const record = await getShareRecord(shareId);
       if (record) {
         ogTitle = `${record.title} | #FrameInGoa`;
         ogDesc = record.description;
-        ogImage = `${baseUrl}/api/share/image/${shareId}.png`;
+        ogImage = record.blobImageUrl || `${baseUrl}/api/share/image/${shareId}.png`;
         ogUrl = `${baseUrl}/share/${shareId}`;
       }
     }
