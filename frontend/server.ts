@@ -172,8 +172,10 @@ function cleanupExpiredShares() {
 // Periodic cleanup task every 30 mins
 setInterval(cleanupExpiredShares, 30 * 60 * 1000);
 
+let app: express.Express;
+
 async function startServer() {
-  const app = express();
+  app = express();
   
   // Resolve port dynamically from environment variables, CLI arguments, or default to 3000
   let parsedPort = 3000;
@@ -582,9 +584,16 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`HH Goa 2026 Share Server running on http://0.0.0.0:${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`HH Goa 2026 Share Server running on http://0.0.0.0:${PORT}`);
+    });
+  }
 }
 
-startServer();
+const serverPromise = startServer();
+
+export default async (req: any, res: any) => {
+  await serverPromise;
+  app(req, res);
+};
