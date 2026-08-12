@@ -82,15 +82,20 @@ async function getShareRecord(id: string): Promise<ShareRecord | null> {
       });
 
       const jsonBlob = blobs.find(b => b.pathname.endsWith('.json'));
-      const pngBlob = blobs.find(b => b.pathname.endsWith('.png'));
+      const imageBlob = blobs.find(b => 
+        b.pathname.endsWith('.png') || 
+        b.pathname.endsWith('.jpeg') || 
+        b.pathname.endsWith('.jpg') || 
+        b.pathname.endsWith('.webp')
+      );
 
-      if (jsonBlob && pngBlob) {
+      if (jsonBlob && imageBlob) {
         const response = await fetch(jsonBlob.url);
         if (response.ok) {
           const meta = await response.json();
           return {
             id,
-            blobImageUrl: pngBlob.url,
+            blobImageUrl: imageBlob.url,
             title: meta.title || '',
             description: meta.description || '',
             type: meta.type || 'builder',
@@ -261,7 +266,11 @@ async function startServer() {
 
       cleanupExpiredShares();
 
-      // Extract base64 buffer from data URL
+      // Extract base64 buffer and detect mimetype dynamically
+      const mimeMatch = imageDataUrl.match(/^data:(image\/\w+);base64,/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+      const extension = mimeType.split('/')[1] || 'png';
+
       const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
 
@@ -273,10 +282,10 @@ async function startServer() {
       if (token) {
         try {
           const { put } = await import('@vercel/blob');
-          const pngBlob = await put(`shares/${id}.png`, imageBuffer, {
+          const pngBlob = await put(`shares/${id}.${extension}`, imageBuffer, {
             access: 'public',
             token,
-            contentType: 'image/png',
+            contentType: mimeType,
           });
           blobImageUrl = pngBlob.url;
 

@@ -175,3 +175,32 @@ export async function downloadCanvasBlob(
     );
   });
 }
+
+/**
+ * Pads a portrait or square canvas with a background color to make it 1.91:1 landscape aspect ratio.
+ * This prevents X (Twitter) from cropping the card previews.
+ */
+export function padCanvasToLandscape(
+  sourceCanvas: HTMLCanvasElement,
+  bgColor = '#F6F0E3'
+): HTMLCanvasElement {
+  const height = sourceCanvas.height;
+  const targetWidth = Math.round(height * 1.91);
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = height;
+  
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return sourceCanvas;
+  
+  // Fill background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, targetWidth, height);
+  
+  // Draw source canvas centered
+  const x = (targetWidth - sourceCanvas.width) / 2;
+  ctx.drawImage(sourceCanvas, x, 0);
+  
+  return canvas;
+}
