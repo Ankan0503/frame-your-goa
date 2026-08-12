@@ -70,15 +70,26 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
   return (
     <div className="relative overflow-visible w-full max-w-[320px] min-[380px]:max-w-[340px] sm:max-w-[420px] lg:w-[min(420px,36vw)] xl:w-[420px] select-none mx-auto lg:mx-0">
-      {/* DECORATIVE GOA BACKGROUND (BEHIND UPLOAD CARD) */}
-      <picture className="absolute z-0 pointer-events-none top-[-55px] sm:top-[-70px] lg:top-[-75px] xl:top-[-80px] left-1/2 -translate-x-1/2 w-[420px] min-[380px]:w-[480px] sm:w-[580px] lg:w-[640px] xl:w-[760px] block">
-        <source type="image/avif" srcSet="/assets/goa-background-decor.avif" />
+      {/* LEFT DECORATIVE PALM LEAF (BEHIND CARD) */}
+      <picture className="absolute z-1 pointer-events-none left-[-85px] sm:left-[-180px] top-[10%] w-[180px] sm:w-[250px] block transform -rotate-[10deg] origin-bottom-right opacity-95">
+        <source type="image/avif" srcSet="/assets/palm_pink_optimized.avif" />
         <img
-          src="/assets/goa-background-decor.avif"
+          src="/assets/palm_pink_optimized.avif"
           alt=""
           aria-hidden="true"
-          referrerPolicy="no-referrer"
-          className="w-full h-auto object-contain pointer-events-none"
+          className="w-full h-auto object-contain pointer-events-none filter drop-shadow-[0_8px_20px_rgba(23,63,50,0.06)]"
+          loading="lazy"
+        />
+      </picture>
+
+      {/* RIGHT DECORATIVE PALM LEAF (BEHIND CARD) */}
+      <picture className="absolute z-1 pointer-events-none right-[-85px] sm:right-[-110px] top-[24%] w-[180px] sm:w-[250px] block transform rotate-12 scale-y-[1.4] origin-bottom-left opacity-95">
+        <source type="image/avif" srcSet="/assets/palm_pink_yellow_optimized.avif" />
+        <img
+          src="/assets/palm_pink_yellow_optimized.avif"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-auto object-contain pointer-events-none filter drop-shadow-[0_8px_20px_rgba(23,63,50,0.06)]"
           loading="lazy"
         />
       </picture>
@@ -219,7 +230,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
       {/* DECORATIVE MINT GOA SCOOTER (FOREGROUND OVERLAY) */}
       <div
-        className="absolute z-10 pointer-events-none -left-[70px] min-[400px]:-left-[90px] sm:-left-[130px] lg:-left-[190px] -bottom-[30px] min-[400px]:-bottom-[35px] sm:-bottom-[45px] lg:-bottom-[40px] w-[190px] min-[400px]:w-[230px] sm:w-[310px] lg:w-[390px] flex flex-col items-center"
+        className="absolute z-10 pointer-events-none -left-[70px] min-[400px]:-left-[90px] sm:-left-[130px] lg:-left-[220px] -bottom-[30px] min-[400px]:-bottom-[35px] sm:-bottom-[45px] lg:-bottom-[40px] w-[190px] min-[400px]:w-[230px] sm:w-[310px] lg:w-[390px] flex flex-col items-center"
         aria-hidden="true"
       >
         {/* Subtle warm/green halo glow behind the scooter */}
@@ -272,7 +283,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
       {/* HIBISCUS FLOWER & LEAVES (Placed beside the back wheel, overlapping the card border) */}
       <div
-        className="absolute z-20 pointer-events-none left-[80px] min-[400px]:left-[100px] sm:left-[150px] lg:left-[140px] -bottom-[15px] sm:-bottom-[20px] w-[60px] min-[400px]:w-[70px] sm:w-[95px] lg:w-[120px]"
+        className="absolute z-20 pointer-events-none left-[80px] min-[400px]:left-[100px] sm:left-[150px] lg:left-[310px] -bottom-[15px] sm:-bottom-[20px] w-[60px] min-[400px]:w-[70px] sm:w-[95px] lg:w-[150px]"
         aria-hidden="true"
         style={{
           filter: 'drop-shadow(0px 6px 14px rgba(23, 63, 50, 0.18))'
@@ -289,6 +300,18 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
           />
         </picture>
       </div>
+
+      {/* HH GOA SUN (LEFT SIDE AT A DIAGONAL ANGLE) */}
+      <picture className="absolute z-10 pointer-events-none -left-[15px] min-[380px]:-left-[20px] sm:-left-[40px] lg:left-[20px] xl:-left-[280px] -top-[28%] w-[110px] min-[380px]:w-[125px] sm:w-[180px] block transform -rotate-[13deg]">
+        <source type="image/avif" srcSet="/assets/HH_Goa_sun.avif" />
+        <img
+          src="/assets/HH_Goa_sun.avif"
+          alt="HH Goa Sun"
+          referrerPolicy="no-referrer"
+          className="w-full h-auto object-contain pointer-events-none"
+          loading="lazy"
+        />
+      </picture>
     </div>
   );
 };

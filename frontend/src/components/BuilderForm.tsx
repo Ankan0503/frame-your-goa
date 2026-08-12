@@ -63,7 +63,7 @@ export const BuilderForm: React.FC<BuilderFormProps> = ({ formData, onChange }) 
       </div>
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        
+
         {/* 1. NAME FIELD */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-baseline font-mono text-[13px]">
@@ -85,9 +85,8 @@ export const BuilderForm: React.FC<BuilderFormProps> = ({ formData, onChange }) 
             placeholder="e.g. Sayan Sinha"
             maxLength={NAME_MAX}
             required
-            className={`w-full h-[58px] px-5 bg-[#F6F0E3] border-2 ${
-              isNameInvalid ? 'border-[#F05A68] focus:ring-[#F05A68]' : 'border-[#173F32] focus:border-[#075B3A]'
-            } rounded-[12px] font-['Calistoga',serif] text-[20px] sm:text-[24px] text-[#173F32] placeholder-[#173F32]/35 focus:outline-none focus:ring-2 focus:ring-[#075B3A]/30 transition-all`}
+            className={`w-full h-[58px] px-5 bg-[#F6F0E3] border-2 ${isNameInvalid ? 'border-[#F05A68] focus:ring-[#F05A68]' : 'border-[#173F32] focus:border-[#075B3A]'
+              } rounded-[12px] font-['Calistoga',serif] text-[20px] sm:text-[24px] text-[#173F32] placeholder-[#173F32]/35 focus:outline-none focus:ring-2 focus:ring-[#075B3A]/30 transition-all`}
           />
 
           {isNameInvalid && (
@@ -119,9 +118,8 @@ export const BuilderForm: React.FC<BuilderFormProps> = ({ formData, onChange }) 
             placeholder="e.g. CSE / AI / Full Stack"
             maxLength={STACK_MAX}
             required
-            className={`w-full h-[58px] px-5 bg-[#F6F0E3] border-2 ${
-              isStackInvalid ? 'border-[#F05A68] focus:ring-[#F05A68]' : 'border-[#173F32] focus:border-[#075B3A]'
-            } rounded-[12px] font-['IBM_Plex_Mono',monospace] font-semibold text-[17px] sm:text-[19px] text-[#075B3A] placeholder-[#173F32]/35 focus:outline-none focus:ring-2 focus:ring-[#075B3A]/30 transition-all`}
+            className={`w-full h-[58px] px-5 bg-[#F6F0E3] border-2 ${isStackInvalid ? 'border-[#F05A68] focus:ring-[#F05A68]' : 'border-[#173F32] focus:border-[#075B3A]'
+              } rounded-[12px] font-['IBM_Plex_Mono',monospace] font-semibold text-[17px] sm:text-[19px] text-[#075B3A] placeholder-[#173F32]/35 focus:outline-none focus:ring-2 focus:ring-[#075B3A]/30 transition-all`}
           />
 
           {isStackInvalid && (

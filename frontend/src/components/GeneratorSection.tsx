@@ -221,8 +221,8 @@ export const GeneratorSection: React.FC<GeneratorSectionProps> = ({
                 <Calendar className="w-4 h-4 text-[#075B3A]" />
                 <div className="flex flex-col">
                   <span className="font-bold text-[10px] text-[#075B3A] uppercase">ADD TO CALENDAR</span>
-                  <span className="font-bold">24 — 30 DEC 2026</span>
-                  <span className="text-[10px] text-[#173F32]/70">Candolim, Goa</span>
+                  <span className="font-bold">28 — 31 OCT 2026</span>
+                  <span className="text-[10px] text-[#173F32]/70">Goa</span>
                 </div>
               </div>
               <ArrowUpRight className="w-4 h-4 text-[#075B3A]" />

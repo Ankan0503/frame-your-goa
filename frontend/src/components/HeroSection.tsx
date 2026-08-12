@@ -142,7 +142,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
       </div>
 
       {/* Right Upload Card Zone */}
-      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-0 lg:translate-y-6">
+      <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 mt-4 sm:mt-8 lg:mt-0 lg:translate-y-6 lg:-translate-x-12">
         <UploadFrame onFileSelect={onFileSelect} />
       </div>
     </section>

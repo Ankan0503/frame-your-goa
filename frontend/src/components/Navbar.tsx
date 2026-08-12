@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
           </div>
 
           {/* RIGHT: Navigation Buttons */}
-          <div className="flex items-center gap-1.5 min-[380px]:gap-2.5 sm:gap-12 md:gap-16 shrink-0 sm:mr-8 md:mr-14">
+          <div className="flex items-center gap-1.5 min-[380px]:gap-2.5 sm:gap-12 md:gap-16 shrink-0 sm:mr-20 md:mr-24">
             {/* ABOUT US BUTTON */}
             <button
               type="button"
