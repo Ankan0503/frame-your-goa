@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { TwitterApi } from 'twitter-api-v2';
+import { Redis } from '@upstash/redis';
 
 // Reload environment variables with new X credentials
 dotenv.config();
@@ -30,6 +31,37 @@ function resolveDistDir(): string {
 const X_API_KEY = process.env.X_API_KEY || '';
 const X_API_SECRET = process.env.X_API_SECRET || '';
 const X_CALLBACK_URL = process.env.X_CALLBACK_URL || '';
+
+// Unique builder ID issuance via Upstash Redis (atomic INCR).
+// Covers 1,679,616 (36^4) sequential IDs; beyond that the suffix grows to 5+ chars.
+const ID_COUNTER_KEY = 'hhg2026-id-counter';
+
+let upstashRedis: Redis | null | undefined; // undefined = not initialized yet
+function getRedis(): Redis | null {
+  if (upstashRedis === undefined) {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    upstashRedis = url && token ? new Redis({ url, token }) : null;
+  }
+  return upstashRedis;
+}
+
+// Dev-only fallback counter (not atomic across instances) used when Upstash is not configured.
+let localIdCounter = 0;
+
+function encodeBuilderId(count: number): string {
+  return `hhg-2026-${count.toString(36).padStart(4, '0')}`;
+}
+
+async function issueNextBuilderId(): Promise<string> {
+  const redis = getRedis();
+  if (redis) {
+    const count = await redis.incr(ID_COUNTER_KEY);
+    return encodeBuilderId(count);
+  }
+  localIdCounter += 1;
+  return encodeBuilderId(localIdCounter);
+}
 
 // Register image/avif mime type globally if the express static mime registry is available
 try {
@@ -255,10 +287,21 @@ async function startServer() {
     return `${proto}://${host}`;
   };
 
+  // 0. GET /api/id/next - Atomically issue the next unique builder ID
+  app.get('/api/id/next', async (_req, res) => {
+    try {
+      const id = await issueNextBuilderId();
+      return res.json({ id, display: id.toUpperCase() });
+    } catch (err) {
+      console.error('Error issuing builder ID:', err);
+      return res.status(500).json({ error: 'Failed to issue builder ID' });
+    }
+  });
+
   // 1. POST /api/share - Upload generated graphic and return unique share link
   app.post('/api/share', async (req, res) => {
     try {
-      const { imageDataUrl, title, description, type, metadata } = req.body;
+      const { imageDataUrl, title, description, type, metadata, id: suppliedId } = req.body;
 
       if (!imageDataUrl || typeof imageDataUrl !== 'string') {
         return res.status(400).json({ error: 'Missing required imageDataUrl parameter' });
@@ -274,7 +317,10 @@ async function startServer() {
       const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
 
-      const id = `hhg-${Math.random().toString(36).substring(2, 10)}`;
+      // Use the provided builder ID when available (deterministic, predictable share URL),
+      // otherwise fall back to a random share id.
+      const validId = typeof suppliedId === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(suppliedId);
+      const id = validId ? suppliedId : `hhg-${Math.random().toString(36).substring(2, 10)}`;
       const baseUrl = getBaseUrl(req);
 
       let blobImageUrl = '';

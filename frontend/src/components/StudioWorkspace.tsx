@@ -8,7 +8,6 @@ import {
   Upload,
   UserPlus,
   Trash2,
-  Instagram,
   Calendar,
   ArrowUpRight,
   Palette,
@@ -18,7 +17,6 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronUp,
-  Edit3,
   ArrowLeft,
 } from 'lucide-react';
 import { GoaIdTemplatePreview, type IdOrientation } from './GoaIdTemplatePreview';
@@ -47,6 +45,15 @@ import {
   type DetectedFace,
   type SmartCropResult,
 } from '../lib/image/smartCrop';
+import { fetchNextBuilderId } from '../lib/id/fetchNextBuilderId';
+import { buildQrDataUrl, buildQrPayload } from '../lib/qr/buildQrPayload';
+import {
+  clearLastCard,
+  compressPhotoToDataUrl,
+  getDeviceBuilderId,
+  saveDeviceBuilderId,
+  saveLastCard,
+} from '../lib/id/lastCardStore';
 
 export type WorkspaceMode = 'builder' | 'pfp' | 'team';
 
@@ -144,10 +151,14 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   const [builderForm, setBuilderForm] = useState<BuilderFormData>({
     name: '',
     stack: '',
-    role: 'BUILDER',
+    role: '',
     builderClass: 'CREATIVE BUILDER',
   });
   const [idOrientation, setIdOrientation] = useState<IdOrientation>('portrait');
+
+  // Builder form is valid only when name, tech stack and pass type are all filled
+  const isBuilderFormComplete =
+    builderForm.name.trim() !== '' && builderForm.stack.trim() !== '' && builderForm.role.trim() !== '';
 
   // 2. PFP FRAME FORM STATE
   const [pfpStyle, setPfpStyle] = useState<PfpStyle>('signal');
@@ -181,6 +192,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
   // CROP ADJUSTMENTS
   const [showAdjustPanel, setShowAdjustPanel] = useState<boolean>(false);
+  const [showPassTypePanel, setShowPassTypePanel] = useState<boolean>(false);
   const [userScale, setUserScale] = useState<number>(1.0);
   const [userOffsetX, setUserOffsetX] = useState<number>(0);
   const [userOffsetY, setUserOffsetY] = useState<number>(0);
@@ -191,6 +203,14 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [shareDataUrl, setShareDataUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+
+  // UNIQUE BUILDER ID & QR STATE
+  const [builderId, setBuilderId] = useState<{ id: string; display: string } | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [isIssuing, setIsIssuing] = useState<boolean>(false);
+
+  // When set, overrides the derived smart crop (used when restoring a saved card exactly).
+  const [manualCrop, setManualCrop] = useState<SmartCropResult | null>(null);
 
   // Load image & detect faces
   useEffect(() => {
@@ -217,16 +237,18 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
     return () => { isMounted = false; };
   }, [photoUrl]);
 
-  // Compute smart crop
-  const cropResult: SmartCropResult = calculateSmartCrop({
-    sourceWidth: imageDimensions?.width || 1000,
-    sourceHeight: imageDimensions?.height || 1000,
-    targetWidth: activeMode === 'pfp' && pfpRatio === '16:9' ? 900 : 600,
-    targetHeight: activeMode === 'pfp' && pfpRatio === '4:5' ? 750 : 600,
-    scale: userScale,
-    position: { x: userOffsetX, y: userOffsetY },
-    faces,
-  });
+  // Compute smart crop (a saved/restored card uses its exact stored crop)
+  const cropResult: SmartCropResult =
+    manualCrop ??
+    calculateSmartCrop({
+      sourceWidth: imageDimensions?.width || 1000,
+      sourceHeight: imageDimensions?.height || 1000,
+      targetWidth: activeMode === 'pfp' && pfpRatio === '16:9' ? 900 : 600,
+      targetHeight: activeMode === 'pfp' && pfpRatio === '4:5' ? 750 : 600,
+      scale: userScale,
+      position: { x: userOffsetX, y: userOffsetY },
+      faces,
+    });
 
   // Handle Uploading a new photo
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,6 +272,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           photoUrl,
           cropResult,
           orientation: idOrientation,
+          builderId: builderId?.id,
+          qrDataUrl: qrDataUrl || undefined,
         });
       } else if (activeMode === 'pfp') {
         await downloadPfpImage({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult }, builderForm.name);
@@ -283,6 +307,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           photoUrl,
           cropResult,
           orientation: idOrientation,
+          builderId: builderId?.id,
+          qrDataUrl: qrDataUrl || undefined,
         });
       } else if (activeMode === 'pfp') {
         canvas = await renderPfpToCanvas({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult });
@@ -306,6 +332,68 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
     navigator.clipboard.writeText(window.location.href);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2500);
+  };
+
+  // Issue a unique builder ID, build the QR and persist the card.
+  // One device always keeps the same builder ID (stored separately from the card),
+  // so re-generating or START NEW PASS never issues a fresh identity.
+  const handleGenerate = async () => {
+    if (!isBuilderFormComplete || isIssuing) return;
+    setIsIssuing(true);
+    try {
+      const existing = builderId ?? getDeviceBuilderId();
+      const next = existing ?? (await fetchNextBuilderId());
+      if (!existing) saveDeviceBuilderId(next.id, next.display);
+      const payload = buildQrPayload({
+        id: next.id,
+        name: builderForm.name,
+        stack: builderForm.stack,
+        pass: builderForm.role,
+      });
+      const qr = await buildQrDataUrl(payload);
+
+      setBuilderId({ id: next.id, display: next.display });
+      setQrDataUrl(qr);
+      setManualCrop(null);
+
+      const photoDataUrl = await compressPhotoToDataUrl(photoUrl);
+      saveLastCard({
+        id: next.id,
+        displayId: next.display,
+        qrDataUrl: qr,
+        fullName: builderForm.name,
+        stack: builderForm.stack,
+        passType: builderForm.role,
+        builderClass: builderForm.builderClass,
+        orientation: idOrientation,
+        photoDataUrl,
+        cropResult,
+        userScale,
+        userOffsetX,
+        userOffsetY,
+        faces,
+        createdAt: Date.now(),
+      });
+
+      setIsGenerated(true);
+    } catch (err) {
+      console.error('Generate failed:', err);
+    } finally {
+      setIsIssuing(false);
+    }
+  };
+
+  // Clear the card details and reset the editor for a fresh pass, but keep the
+  // device-scoped builder ID so one device always has one identity.
+  const handleStartNew = () => {
+    clearLastCard();
+    setBuilderForm({ name: '', stack: '', role: '', builderClass: 'CREATIVE BUILDER' });
+    setQrDataUrl(null);
+    setManualCrop(null);
+    setUserScale(1.0);
+    setUserOffsetX(0);
+    setUserOffsetY(0);
+    setIsGenerated(false);
   };
 
   // Team Member Editing Handlers
@@ -333,10 +421,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   // FULL SCREEN RESULT PAGE (PICTURE 2 FLOW) WHEN GENERATED
   const renderResultView = () => {
     return (
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-1 pb-2 relative z-10 animate-fade-in">
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-3 pb-2 relative z-10 animate-fade-in">
 
         {/* RESULT PAGE HEADER / NAVBAR */}
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-3 border-b-2 border-[#173F32]/15 shrink-0">
+        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-4 border-b-2 border-[#173F32]/15 shrink-0">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -356,9 +444,9 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0 lg:col-start-1">
             <div>
               <div className="flex flex-col font-['Calistoga',serif] font-normal uppercase leading-[0.9] tracking-[-0.015em]">
-                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">YOUR GOA</span>
-                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#0B6839]">FRAME</span>
-                <span className="text-[54px] sm:text-[72px] lg:text-[64px] xl:text-[76px] text-[#F05A68]">IS READY!</span>
+                <span className="text-[34px] sm:text-[44px] lg:text-[40px] xl:text-[46px] text-[#0B6839]">YOUR GOA</span>
+                <span className="text-[34px] sm:text-[44px] lg:text-[40px] xl:text-[46px] text-[#0B6839]">FRAME</span>
+                <span className="text-[34px] sm:text-[44px] lg:text-[40px] xl:text-[46px] text-[#F05A68]">IS READY!</span>
               </div>
 
               {/* DECORATIVE OCEAN WAVE (like landing page) */}
@@ -410,6 +498,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   builderClass={builderForm.builderClass}
                   photo={photoUrl}
                   cropResult={cropResult}
+                  builderId={builderId?.display}
+                  qrDataUrl={qrDataUrl || undefined}
                 />
               )}
 
@@ -444,7 +534,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   <span className="font-['Oswald'] font-bold text-[17px] text-[#173F32] uppercase">
                     YOUR FRAME IS READY
                   </span>
-                  <span className="font-mono text-[11px] text-[#173F32]/70">
+                  <span className="font-mono text-[10px] text-[#173F32]/70">
                     Download, share and show off your Goa spirit.
                   </span>
                 </div>
@@ -455,9 +545,9 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 type="button"
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="btn-tactile w-full h-[50px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[16px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
+                className="btn-tactile w-full h-[44px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839] shadow-md"
               >
-                <Download className="w-4 h-4 text-[#F2A900]" />
+                <Download className="w-3.5 h-3.5 text-[#F2A900]" />
                 <span>{downloadSuccess ? 'DOWNLOADED HD!' : 'DOWNLOAD HD IMAGE'}</span>
               </button>
 
@@ -465,30 +555,30 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={handleOpenShare}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+                className="btn-tactile w-full h-[38px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[6px] font-mono text-[11px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
               >
-                <Share2 className="w-3.5 h-3.5 text-[#075B3A]" />
+                <Share2 className="w-3 h-3 text-[#075B3A]" />
                 <span>SHARE TO X</span>
-              </button>
-
-              {/* SHARE TO INSTAGRAM */}
-              <button
-                type="button"
-                onClick={handleOpenShare}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-              >
-                <Instagram className="w-3.5 h-3.5 text-[#F05A68]" />
-                <span>SHARE TO INSTAGRAM</span>
               </button>
 
               {/* COPY SHARE LINK */}
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+                className="btn-tactile w-full h-[38px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[6px] font-mono text-[11px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
               >
-                <Copy className="w-3.5 h-3.5 text-[#075B3A]" />
+                <Copy className="w-3 h-3 text-[#075B3A]" />
                 <span>{copySuccess ? 'LINK COPIED!' : 'COPY LINK'}</span>
+              </button>
+
+              {/* START A NEW PASS (clears the saved card) */}
+              <button
+                type="button"
+                onClick={handleStartNew}
+                className="btn-tactile w-full h-[38px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32]/40 rounded-[6px] font-mono text-[11px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
+              >
+                <RotateCcw className="w-3 h-3 text-[#F05A68]" />
+                <span>START NEW PASS</span>
               </button>
 
               {/* CALENDAR BADGE */}
@@ -507,11 +597,11 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
             </div>
 
             {/* CARD 2: WHAT'S NEXT? */}
-            <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3">
-              <h3 className="font-['Oswald'] font-bold text-[15px] text-[#173F32] uppercase">
+            <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-4 shadow-xs flex flex-col gap-2">
+              <h3 className="font-['Oswald'] font-bold text-[14px] text-[#173F32] uppercase">
                 WHAT'S NEXT?
               </h3>
-              <p className="font-mono text-[11px] text-[#173F32]/70 -mt-1">
+              <p className="font-mono text-[10px] text-[#173F32]/70 -mt-1">
                 More ways to create your Goa moment.
               </p>
 
@@ -522,10 +612,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                     setIsGenerated(false);
                     setTimeout(() => fileInputRef.current?.click(), 100);
                   }}
-                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[10px] p-2.5 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
+                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[8px] p-2 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
                 >
-                  <ImageIcon className="w-4 h-4 mb-1 text-[#075B3A]" />
-                  <span className="font-mono text-[9px] font-bold uppercase leading-tight">
+                  <ImageIcon className="w-3.5 h-3.5 mb-1 text-[#075B3A]" />
+                  <span className="font-mono text-[8px] font-bold uppercase leading-tight">
                     ANOTHER PHOTO
                   </span>
                 </button>
@@ -535,10 +625,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   onClick={() => {
                     setIsGenerated(false);
                   }}
-                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[10px] p-2.5 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
+                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[8px] p-2 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
                 >
-                  <Palette className="w-4 h-4 mb-1 text-[#F05A68]" />
-                  <span className="font-mono text-[9px] font-bold uppercase leading-tight">
+                  <Palette className="w-3.5 h-3.5 mb-1 text-[#F05A68]" />
+                  <span className="font-mono text-[8px] font-bold uppercase leading-tight">
                     EDIT STYLE
                   </span>
                 </button>
@@ -548,10 +638,10 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   onClick={() => {
                     switchMode(activeMode === 'builder' ? 'team' : 'builder');
                   }}
-                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[10px] p-2.5 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
+                  className="btn-tactile bg-[#F6F0E3] text-[#173F32] border border-[#173F32] rounded-[8px] p-2 flex flex-col items-center text-center cursor-pointer hover:bg-[#075B3A]/10"
                 >
-                  <Users className="w-4 h-4 mb-1 text-[#F2A900]" />
-                  <span className="font-mono text-[9px] font-bold uppercase leading-tight">
+                  <Users className="w-3.5 h-3.5 mb-1 text-[#F2A900]" />
+                  <span className="font-mono text-[8px] font-bold uppercase leading-tight">
                     {activeMode === 'builder' ? 'TEAM FRAME' : 'BUILDER ID'}
                   </span>
                 </button>
@@ -584,7 +674,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
       <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 pt-1 pb-4 relative z-10">
 
         {/* 1. TOP HEADER NAVIGATION & MODE SELECTOR TABS */}
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-8 pb-4 border-b-2 border-[#173F32]/15">
+        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-3 mb-4 pb-3 border-b-2 border-[#173F32]/15">
 
           {/* BACK BUTTON & HEADING */}
           <div className="flex items-center gap-3">
@@ -592,16 +682,16 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={onBackToHome}
-                className="btn-tactile px-3 py-1.5 bg-[#FAF6EE] text-[#075B3A] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[#173F32]/5"
+                className="btn-tactile px-3 py-1 bg-[#FAF6EE] text-[#075B3A] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[#173F32]/5"
               >
                 ← HOME
               </button>
             )}
             <div>
-              <h1 className="font-['Oswald'] font-bold text-[22px] sm:text-[26px] text-[#173F32] uppercase tracking-wide leading-none">
+              <h1 className="font-['Oswald'] font-bold text-[18px] sm:text-[22px] text-[#173F32] uppercase tracking-wide leading-none">
                 FRAME STUDIO WORKSPACE
               </h1>
-              <p className="font-mono text-[11px] text-[#173F32]/70">
+              <p className="font-mono text-[10px] text-[#173F32]/70 hidden md:block">
                 Upload, customize and generate individual or team cards in one single place.
               </p>
             </div>
@@ -612,7 +702,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => switchMode('builder')}
-              className={`btn-tactile px-5 py-2 rounded-full font-['Oswald'] font-semibold text-[13px] sm:text-[14px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${activeMode === 'builder'
+              className={`btn-tactile px-4 py-1.5 rounded-full font-['Oswald'] font-semibold text-[12px] sm:text-[13px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${activeMode === 'builder'
                   ? 'bg-[#075B3A] text-[#F6F0E3] shadow-md'
                   : 'text-[#173F32]/70 hover:text-[#173F32] hover:bg-[#173F32]/10'
                 }`}
@@ -623,7 +713,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => switchMode('pfp')}
-              className={`btn-tactile px-5 py-2 rounded-full font-['Oswald'] font-semibold text-[13px] sm:text-[14px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${activeMode === 'pfp'
+              className={`btn-tactile px-4 py-1.5 rounded-full font-['Oswald'] font-semibold text-[12px] sm:text-[13px] uppercase tracking-wide cursor-pointer transition-all duration-200 flex items-center gap-1.5 ${activeMode === 'pfp'
                   ? 'bg-[#F05A68] text-[#F6F0E3] shadow-md'
                   : 'text-[#173F32]/70 hover:text-[#173F32] hover:bg-[#173F32]/10'
                 }`}
@@ -635,7 +725,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* 2. WORKSPACE GRID: PREVIEW CARD CENTER, OPTIONS ON RIGHT */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_340px] gap-6 items-start mb-6">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_340px] gap-4 items-start mb-4">
 
           {/* LEFT COLUMN: EDITORIAL HEADING & VINTAGE GOA STAMP */}
           <div className="flex flex-col justify-between gap-6 h-full min-h-[360px] lg:min-h-0 lg:col-start-1">
@@ -682,8 +772,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
           </div>
 
-          {/* CENTER COLUMN: LIVE PREVIEW CARD & GENERATE BUTTON BELOW */}
-          <div className="flex flex-col gap-5 w-full lg:col-start-2">
+          {/* CENTER COLUMN: LIVE PREVIEW CARD (CARD ONLY) */}
+          <div className="flex flex-col justify-center w-full lg:col-start-2">
 
             {/* LIVE PREVIEW CARD */}
             <div className="flex flex-col items-center justify-center w-full">
@@ -696,6 +786,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   builderClass={builderForm.builderClass}
                   photo={photoUrl}
                   cropResult={cropResult}
+                  builderId={builderId?.display}
+                  qrDataUrl={qrDataUrl || undefined}
                 />
               )}
 
@@ -716,105 +808,24 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
               )}
             </div>
 
-            {/* ACTION CONTROLS & QUICK ACTIONS */}
-            {/* PRIMARY ACTION: GENERATE */}
-            {!isGenerated ? (
-              <button
-                type="button"
-                onClick={() => setIsGenerated(true)}
-                className="btn-tactile w-full max-w-[140px] mx-auto h-[40px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[8px] font-['Oswald'] font-bold text-[13px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#0B6839] shadow-md"
-              >
-                <Sparkles className="w-4 h-4 text-[#F2A900]" />
-                <span>GENERATE NOW</span>
-              </button>
-            ) : (
-              <div className="w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs flex flex-col gap-3.5">
-
-                {/* EDIT AGAIN OPTION */}
-                <button
-                  type="button"
-                  onClick={() => setIsGenerated(false)}
-                  className="btn-tactile w-full h-[40px] bg-[#EDE5D4] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/10 mb-1"
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-[#075B3A]" />
-                  <span>EDIT AGAIN / MAKE CHANGES</span>
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#F05A68] text-[#F6F0E3] flex items-center justify-center shrink-0 shadow-xs">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-['Oswald'] font-bold text-[16px] text-[#173F32] uppercase">
-                      YOUR FRAME IS READY
-                    </span>
-                    <span className="font-mono text-[11px] text-[#173F32]/70">
-                      Download, share and show off your Goa spirit.
-                    </span>
-                  </div>
-                </div>
-
-                {/* DOWNLOAD HD IMAGE */}
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                  className="btn-tactile w-full h-[48px] bg-[#075B3A] text-[#F6F0E3] border-2 border-[#173F32] rounded-[10px] font-['Oswald'] font-bold text-[15px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0B6839]"
-                >
-                  <Download className="w-4 h-4 text-[#F2A900]" />
-                  <span>{downloadSuccess ? 'DOWNLOADED HD!' : 'DOWNLOAD HD IMAGE'}</span>
-                </button>
-
-                {/* SHARE TO X */}
-                <button
-                  type="button"
-                  onClick={handleOpenShare}
-                  className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-[#075B3A]" />
-                  <span>POST ON X NOW</span>
-                </button>
-
-                {/* SHARE TO INSTAGRAM */}
-                <button
-                  type="button"
-                  onClick={handleOpenShare}
-                  className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-                >
-                  <Instagram className="w-3.5 h-3.5 text-[#F05A68]" />
-                  <span>SHARE TO INSTAGRAM</span>
-                </button>
-
-                {/* COPY SHARE LINK */}
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="btn-tactile w-full h-[42px] bg-[#FAF6EE] text-[#173F32] border-2 border-[#173F32] rounded-[8px] font-mono text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer hover:bg-[#173F32]/5"
-                >
-                  <Copy className="w-3.5 h-3.5 text-[#075B3A]" />
-                  <span>{copySuccess ? 'LINK COPIED!' : 'COPY LINK'}</span>
-                </button>
-
-                {/* CALENDAR BADGE */}
-                <div className="w-full bg-[#F2E8D5] border border-[#173F32]/20 rounded-[12px] p-3 mt-1 flex items-center justify-between font-mono text-[11px] text-[#173F32]">
-                  <div className="flex items-center gap-2.5">
-                    <Calendar className="w-4 h-4 text-[#075B3A]" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[10px] text-[#075B3A] uppercase">EVENT DATE</span>
-                      <span className="font-bold">28 — 31 OCT 2026</span>
-                      <span className="text-[10px] text-[#173F32]/70">Goa</span>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-[#075B3A]" />
-                </div>
-
-              </div>
-            )}
-
           </div>
 
           {/* RIGHT COLUMN: ALL CUSTOMIZATION OPTIONS (RIGHT-ALIGNED IN COLUMN 3) */}
-          <div className="flex flex-col gap-5 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-5 shadow-xs lg:col-start-3 lg:justify-self-end lg:w-[min(340px,100%)]">
+          <div className="flex flex-col gap-4 w-full bg-[#FAF6EE] border-2 border-[#173F32] rounded-[20px] p-4 shadow-xs lg:col-start-3 lg:justify-self-end lg:w-[min(340px,100%)] max-h-[calc(100dvh-170px)] overflow-y-auto">
+
+            {/* PRIMARY ACTION: GENERATE */}
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={!isBuilderFormComplete || isIssuing}
+              className={`btn-tactile w-full h-[44px] border-2 rounded-[8px] font-['Oswald'] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 transition-all ${isBuilderFormComplete && !isIssuing
+                  ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32] cursor-pointer hover:bg-[#0B6839] shadow-md'
+                  : 'bg-[#EDE5D4] text-[#173F32]/40 border-[#173F32]/20 cursor-not-allowed'
+                }`}
+            >
+              <Sparkles className={`w-4 h-4 ${isBuilderFormComplete && !isIssuing ? 'text-[#F2A900]' : 'text-[#173F32]/30'}`} />
+              <span>{isIssuing ? 'ISSUING...' : 'GENERATE NOW'}</span>
+            </button>
 
             {/* PHOTO UPLOAD BOX */}
             <div className="flex flex-col gap-2">
@@ -885,7 +896,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                           max="2.5"
                           step="0.05"
                           value={userScale}
-                          onChange={(e) => setUserScale(parseFloat(e.target.value))}
+                          onChange={(e) => { setManualCrop(null); setUserScale(parseFloat(e.target.value)); }}
                           className="w-full accent-[#075B3A] cursor-pointer"
                         />
                       </div>
@@ -901,7 +912,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                           max="0.3"
                           step="0.02"
                           value={userOffsetX}
-                          onChange={(e) => setUserOffsetX(parseFloat(e.target.value))}
+                          onChange={(e) => { setManualCrop(null); setUserOffsetX(parseFloat(e.target.value)); }}
                           className="w-full accent-[#075B3A] cursor-pointer"
                         />
                       </div>
@@ -917,7 +928,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                           max="0.3"
                           step="0.02"
                           value={userOffsetY}
-                          onChange={(e) => setUserOffsetY(parseFloat(e.target.value))}
+                          onChange={(e) => { setManualCrop(null); setUserOffsetY(parseFloat(e.target.value)); }}
                           className="w-full accent-[#075B3A] cursor-pointer"
                         />
                       </div>
@@ -926,6 +937,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                         <button
                           type="button"
                           onClick={() => {
+                            setManualCrop(null);
                             setUserScale(1.0);
                             setUserOffsetX(0);
                             setUserOffsetY(0);
@@ -960,7 +972,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 {/* NAME */}
                 <div>
                   <label className="font-mono text-[11px] font-bold text-[#173F32]/80 uppercase block mb-1">
-                    BUILDER NAME
+                    BUILDER NAME <span className="text-[#F05A68]">*</span>
                   </label>
                   <input
                     type="text"
@@ -974,7 +986,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 {/* TECH STACK */}
                 <div>
                   <label className="font-mono text-[11px] font-bold text-[#173F32]/80 uppercase block mb-1">
-                    TECH STACK
+                    TECH STACK <span className="text-[#F05A68]">*</span>
                   </label>
                   <input
                     type="text"
@@ -988,22 +1000,48 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                 {/* PASS TYPE / ROLE */}
                 <div>
                   <label className="font-mono text-[11px] font-bold text-[#173F32]/80 uppercase block mb-1.5">
-                    PASS TYPE
+                    PASS TYPE <span className="text-[#F05A68]">*</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {['BUILDER', 'SPEAKER', 'VOLUNTEER', 'CREW', 'COMMUNITY', 'VIP'].map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setBuilderForm({ ...builderForm, role })}
-                        className={`btn-tactile py-1.5 px-2 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer ${builderForm.role === role
-                            ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]'
-                            : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
-                          }`}
-                      >
-                        {role}
-                      </button>
-                    ))}
+                  <div className="relative z-20">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassTypePanel(!showPassTypePanel)}
+                      className={`btn-tactile w-full py-1.5 px-3 bg-[#EDE5D4] border border-[#173F32]/30 rounded-[8px] font-mono text-[10px] font-bold text-[#173F32] flex items-center justify-between cursor-pointer hover:bg-[#173F32]/10 ${builderForm.role === '' ? 'text-[#173F32]/50' : ''}`}
+                    >
+                      <span>{builderForm.role || 'SELECT PASS TYPE'}</span>
+                      {showPassTypePanel ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+
+                    <AnimatePresence>
+                      {showPassTypePanel && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute left-0 right-0 bottom-full mb-1 bg-[#FAF6EE] border-2 border-[#173F32] rounded-[12px] p-3 shadow-xl z-50"
+                        >
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {['BUILDER', 'SPEAKER', 'VOLUNTEER', 'CREW', 'COMMUNITY', 'VIP'].map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => {
+                                setBuilderForm({ ...builderForm, role });
+                                setShowPassTypePanel(false);
+                              }}
+                              className={`btn-tactile py-1.5 px-2 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer ${builderForm.role === role
+                                  ? 'bg-[#075B3A] text-[#F6F0E3] border-[#173F32]'
+                                  : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
+                                }`}
+                            >
+                              {role}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   </div>
                 </div>
 
@@ -1225,6 +1263,21 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
 
   return (
     <div className="w-full relative overflow-x-clip">
+      {/* Goa frame-page background illustration flush to window left edge (editor view only) */}
+      {!isGenerated && (
+        <div
+          aria-hidden="true"
+          className="absolute left-0 bottom-[6vh] pointer-events-none z-0 w-[170px] sm:w-[260px] md:w-[330px] lg:w-[490px] opacity-80 select-none"
+          style={{ height: 'clamp(520px, 78vh, 920px)' }}
+        >
+          <img
+            src="/assets/goa-framepage-bg.avif"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain object-left-bottom block"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      )}
       <AnimatePresence mode="wait" initial={false} custom={direction}>
         {isGenerated ? (
           <motion.div

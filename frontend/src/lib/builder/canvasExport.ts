@@ -16,6 +16,8 @@ export interface IdCardData {
   photoUrl: string;
   cropResult?: SmartCropResult;
   orientation?: 'portrait' | 'landscape';
+  builderId?: string;
+  qrDataUrl?: string;
 }
 
 export async function renderIdCardToCanvas(
@@ -24,12 +26,13 @@ export async function renderIdCardToCanvas(
 ): Promise<HTMLCanvasElement> {
   const cardData: BuilderCardData = {
     fullName: data.name,
-    role: data.role || data.stack,
-    project: data.builderClass,
-    builderId: `HH-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    role: data.stack || data.role || data.builderClass,
+    project: data.role || data.builderClass,
+    builderId: data.builderId || `HH-2026-${Math.floor(1000 + Math.random() * 9000)}`,
     location: 'GOA, INDIA',
     photoUrl: data.photoUrl,
     cropResult: data.cropResult,
+    qrCodeDataUrl: data.qrDataUrl,
   };
 
   return renderBuilderCard(cardData, targetCanvas);

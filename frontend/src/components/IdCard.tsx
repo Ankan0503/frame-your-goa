@@ -17,6 +17,10 @@ export interface IdCardProps {
     passType?: string;
     /** Optional builder class for future dynamic use */
     builderClass?: string;
+    /** Optional unique builder ID (e.g. "HHG-OO-0000") for future dynamic use */
+    builderId?: string;
+    /** Optional QR code data URL to render in the card footer */
+    qrDataUrl?: string;
     /** Optional orientation to support portrait/landscape layout changes later */
     orientation?: 'portrait' | 'landscape';
     /** Optional custom aspect ratio if adjusted later (defaults to 4/5) */
@@ -31,9 +35,41 @@ export const IdCard: React.FC<IdCardProps> = ({
     role,
     passType,
     builderClass,
+    builderId,
+    qrDataUrl,
     orientation = 'portrait',
     aspectRatio = '4/5',
 }) => {
+    /* QR + Builder ID appear only after GENERATE issues a real ID. The card keeps its
+       original aspect ratio — the footer fits inside without growing the card. */
+    const showFooter = Boolean(qrDataUrl && builderId);
+    const cardAspect = aspectRatio;
+
+    /* ─── MANUAL LAYOUT TUNING ─────────────────────────────────────────────
+       The card keeps the SAME size in both states (4/5). After GENERATE the QR
+       footer appears, so the first branch lets you re-fit the photo/text to make
+       room for it. Tune the values freely:
+         photoPosY    → % of card HEIGHT (bigger = photo lower)
+         photoWidth   → % of card WIDTH (photo size)
+         detailsPadding → space below the name/badge block
+       Tweak the numbers, save, and refresh to see the change. */
+    const LAYOUT = showFooter
+        ? {
+            logoWidth: '30%',
+            logoPadding: '8% 0 0 7%',
+            photoPosY: '27.5%',
+            photoWidth: '45%',
+            detailsPadding: '0 8% 0%',
+        }
+        : {
+            logoWidth: '30%',
+            logoPadding: '8% 0 0 7%',
+            photoPosY: '27.5%',
+            photoWidth: '45%',
+            detailsPadding: '0 8% 12%',
+        };
+    /* ───────────────────────────────────────────────────────────────────── */
+
     /* Enhanced 3D multi-layer depth shadow for card feeling */
     const slotMask = `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTAwIDEyNScgcHJlc2VydmVBc3BlY3RSYXRpbz0nbm9uZSc+PG1hc2sgaWQ9J20nPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTI1JyBmaWxsPSd3aGl0ZScvPjxyZWN0IHg9JzQyJyB5PSczLjUnIHdpZHRoPScxNicgaGVpZ2h0PSc0LjInIHJ4PScyLjEnIGZpbGw9J2JsYWNrJy8+PC9tYXNrPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTI1JyBmaWxsPSd3aGl0ZScgbWFzaz0ndXJsKCNtKScvPjwvc3ZnPg==")`;
 
@@ -57,7 +93,7 @@ export const IdCard: React.FC<IdCardProps> = ({
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div
                 id="physical-id-card-assembly"
-                className="relative z-10 w-full max-w-[420px] flex flex-col items-center"
+                className="relative z-10 w-full max-w-[420px] flex flex-col items-center mt-5"
             >
                 {/* 1. BACK ATTACHMENT LAYER (Sits behind the card body, visible through the slot cutout) */}
                 <BadgeAttachmentBack />
@@ -96,7 +132,7 @@ export const IdCard: React.FC<IdCardProps> = ({
                 {/* 2. Beveled Top Rim representing 3-4mm physical card thickness */}
                 <div
                     id="card-top-thickness-rim"
-                    className="absolute top-0 left-[3px] right-[3px] h-[6px] rounded-t-[30px] z-20 border-b border-black/15 shadow-inner"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-[93%] h-[6px] rounded-t-[30px] z-20 border-b border-black/15 shadow-inner"
                     style={{
                         background: 'linear-gradient(180deg, #F0E6D2 0%, #D9CCB4 55%, #B9A988 100%)',
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.25)',
@@ -111,9 +147,14 @@ export const IdCard: React.FC<IdCardProps> = ({
                             2px 3px 0 0 rgba(238, 230, 210, 1),
                             2px 3px 0 1px rgba(160, 145, 118, 0.95),
                             2px 3px 0 2px rgba(255, 255, 255, 0.2),
+                            -2px 3px 0 0 rgba(238, 230, 210, 1),
+                            -2px 3px 0 1px rgba(160, 145, 118, 0.95),
+                            -2px 3px 0 2px rgba(255, 255, 255, 0.2),
                             6px 10px 18px -4px rgba(0, 0, 0, 0.5),
                             14px 22px 50px -12px rgba(0, 0, 0, 0.6),
-                            30px 45px 90px -20px rgba(0, 0, 0, 0.5)
+                            30px 45px 90px -20px rgba(0, 0, 0, 0.5),
+                            -6px 0 18px -6px rgba(0, 0, 0, 0.4),
+                            -14px 16px 40px -14px rgba(0, 0, 0, 0.45)
                         `,
                     }}
                 >
@@ -121,7 +162,7 @@ export const IdCard: React.FC<IdCardProps> = ({
                         id="physical-id-card"
                         className="relative overflow-hidden w-full rounded-[30px] bg-[#FAF6EE]"
                         style={{
-                            aspectRatio,
+                            aspectRatio: cardAspect,
                             ...cardShadow,
                             maskImage: slotMask,
                             WebkitMaskImage: slotMask,
@@ -157,8 +198,8 @@ export const IdCard: React.FC<IdCardProps> = ({
                                     src="/assets/hacker-house-goa-logo.svg"
                                     alt="Hacker House Goa 2026"
                                     referrerPolicy="no-referrer"
-                                    className="block w-[30%] h-auto object-contain"
-                                    style={{ padding: '8% 0 0 7%' }}
+                                    className="block h-auto object-contain"
+                                    style={{ width: LAYOUT.logoWidth, padding: LAYOUT.logoPadding }}
                                     onError={(e) => {
                                         const target = e.currentTarget;
                                         if (target.src.includes('/assets/hacker-house-goa-logo.svg')) {
@@ -174,11 +215,13 @@ export const IdCard: React.FC<IdCardProps> = ({
                             {photo && (
                                 <div
                                     id="id-card-profile-photo-area"
-                                    className="absolute left-0 right-0 top-[27.5%] w-full flex justify-center"
+                                    className="absolute left-0 right-0 w-full flex justify-center"
+                                    style={{ top: LAYOUT.photoPosY }}
                                 >
                                     <div
-                                        className="w-[45%] aspect-square rounded-full overflow-hidden"
+                                        className="aspect-square rounded-full overflow-hidden"
                                         style={{
+                                            width: LAYOUT.photoWidth,
                                             border: '2px solid rgba(255,255,255,0.95)',
                                             boxShadow: '0 4px 18px rgba(0,0,0,0.35)',
                                         }}
@@ -200,8 +243,8 @@ export const IdCard: React.FC<IdCardProps> = ({
                             {/* User Details Area: grouping Name, Role, Metadata, and Footer */}
                             <div
                                 id="id-card-details-group"
-                                className="w-full flex flex-col items-center gap-[0.6em] text-center"
-                                style={{ padding: '0 8% 12%' }}
+                                className="w-full flex flex-col items-center gap-[0.4em] text-center"
+                                style={{ padding: LAYOUT.detailsPadding }}
                             >
                                 {/* Name Area */}
                                 <div id="id-card-name-area" className="w-full">
@@ -242,8 +285,24 @@ export const IdCard: React.FC<IdCardProps> = ({
                                     </span>
                                 </div>
 
-                                {/* Footer Area (Empty for now) */}
-                                <div id="id-card-footer-area" className="w-full" />
+                                {/* Footer Area: QR (left) + Builder ID (right). Only shown after GENERATE issues a real ID. */}
+                                {showFooter ? (
+                                    <div id="id-card-footer-area" className="w-full flex items-center justify-between gap-2 px-1">
+                                        <img
+                                            src={qrDataUrl}
+                                            alt="Builder pass QR"
+                                            className="w-15 h-15 object-contain shrink-0 -translate-x-4 -translate-y-28 border-2 border-[#173F32] bg-white"
+                                        />
+                                        <div className="flex flex-col items-start leading-tight text-left -translate-x-65 -translate-y-10">
+                                            <span className="font-mono font-bold text-[0.7rem] tracking-[0.2em] text-[#2E6B4F]">
+                                                BUILDER ID
+                                            </span>
+                                            <span className="font-mono font-bold text-[0.7rem] sm:text-[0.7rem] tracking-[0.15em] text-[#173F32]">
+                                                {builderId}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
 
