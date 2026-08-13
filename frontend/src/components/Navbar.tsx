@@ -5,9 +5,15 @@ interface NavbarProps {
   onAboutClick?: () => void;
   onCreateIdClick?: () => void;
   onCreateTeamClick?: () => void;
+  showDivider?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, onCreateTeamClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onAboutClick,
+  onCreateIdClick,
+  onCreateTeamClick,
+  showDivider = false,
+}) => {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const handleAboutClick = () => {
@@ -91,6 +97,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onCreateIdClick, o
             </a>
           </div>
         </nav>
+        {/* Faint line at the bottom of the header */}
+        {showDivider && (
+          <div className="w-full h-[1px] bg-[#173F32]/10 mt-2 modal-share-hidden" />
+        )}
       </header>
 
       {/* ABOUT US MODAL */}
