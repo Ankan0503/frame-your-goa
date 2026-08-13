@@ -18,6 +18,7 @@ export interface IdCardData {
   orientation?: 'portrait' | 'landscape';
   builderId?: string;
   qrDataUrl?: string;
+  theme?: 'theme1' | 'theme2';
 }
 
 export async function renderIdCardToCanvas(
@@ -33,6 +34,7 @@ export async function renderIdCardToCanvas(
     photoUrl: data.photoUrl,
     cropResult: data.cropResult,
     qrCodeDataUrl: data.qrDataUrl,
+    theme: data.theme,
   };
 
   return renderBuilderCard(cardData, targetCanvas);

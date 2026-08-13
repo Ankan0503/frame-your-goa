@@ -154,7 +154,8 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
     role: '',
     builderClass: 'CREATIVE BUILDER',
   });
-  const [idOrientation, setIdOrientation] = useState<IdOrientation>('portrait');
+  const [idOrientation, setIdOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [idTheme, setIdTheme] = useState<'theme1' | 'theme2'>('theme1');
 
   // Builder form is valid only when name, tech stack and pass type are all filled
   const isBuilderFormComplete =
@@ -281,6 +282,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           orientation: idOrientation,
           builderId: builderId?.id,
           qrDataUrl: qrDataUrl || undefined,
+          theme: idTheme,
         });
       } else if (activeMode === 'pfp') {
         await downloadPfpImage({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult }, builderForm.name);
@@ -316,6 +318,7 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           orientation: idOrientation,
           builderId: builderId?.id,
           qrDataUrl: qrDataUrl || undefined,
+          theme: idTheme,
         });
       } else if (activeMode === 'pfp') {
         canvas = await renderPfpToCanvas({ photoUrl, style: pfpStyle, aspectRatio: pfpRatio, cropResult });
@@ -504,18 +507,19 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
           <div className="flex flex-col items-center justify-start w-full min-h-[280px] lg:col-start-2">
             <div className="w-full flex items-center justify-center">
               {activeMode === 'builder' && (
-                <IdCard
-                  name={builderForm.name}
-                  stack={builderForm.stack}
-                  role={builderForm.role}
-                  passType={builderForm.role}
-                  builderClass={builderForm.builderClass}
-                  photo={photoUrl}
-                  cropResult={cropResult}
-                  builderId={builderId?.display}
-                  qrDataUrl={qrDataUrl || undefined}
-                />
-              )}
+                  <IdCard
+                    name={builderForm.name}
+                    stack={builderForm.stack}
+                    role={builderForm.role}
+                    passType={builderForm.role}
+                    builderClass={builderForm.builderClass}
+                    photo={photoUrl}
+                    cropResult={cropResult}
+                    builderId={builderId?.display}
+                    qrDataUrl={qrDataUrl || undefined}
+                    theme={idTheme}
+                  />
+                )}
 
               {activeMode === 'pfp' && (
                 <PfpFramePreview photoUrl={photoUrl} style={pfpStyle} aspectRatio={pfpRatio} cropResult={cropResult} />
@@ -797,18 +801,19 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
             {/* LIVE PREVIEW CARD */}
             <div className="flex flex-col items-center justify-center w-full">
               {activeMode === 'builder' && (
-                <IdCard
-                  name={builderForm.name}
-                  stack={builderForm.stack}
-                  role={builderForm.role}
-                  passType={builderForm.role}
-                  builderClass={builderForm.builderClass}
-                  photo={photoUrl}
-                  cropResult={cropResult}
-                  builderId={builderId?.display}
-                  qrDataUrl={qrDataUrl || undefined}
-                />
-              )}
+                  <IdCard
+                    name={builderForm.name}
+                    stack={builderForm.stack}
+                    role={builderForm.role}
+                    passType={builderForm.role}
+                    builderClass={builderForm.builderClass}
+                    photo={photoUrl}
+                    cropResult={cropResult}
+                    builderId={builderId?.display}
+                    qrDataUrl={qrDataUrl || undefined}
+                    theme={idTheme}
+                  />
+                )}
 
               {activeMode === 'pfp' && (
                 <PfpFramePreview photoUrl={photoUrl} style={pfpStyle} aspectRatio={pfpRatio} cropResult={cropResult} />
@@ -1064,18 +1069,21 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
                   </div>
                 </div>
 
-                {/* ORIENTATION */}
+                {/* CARD THEME */}
                 <div>
                   <label className="font-mono text-[11px] font-bold text-[#173F32]/80 uppercase block mb-1.5">
-                    ORIENTATION
+                    CARD THEME
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
-                    {ID_ORIENTATIONS.map((option) => (
+                    {[
+                      { id: 'theme1', label: 'Classic Goa' },
+                      { id: 'theme2', label: 'HHG Originals' },
+                    ].map((option) => (
                       <button
                         key={option.id}
                         type="button"
-                        onClick={() => setIdOrientation(option.id)}
-                        className={`btn-tactile py-1.5 px-2 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer ${idOrientation === option.id
+                        onClick={() => setIdTheme(option.id as 'theme1' | 'theme2')}
+                        className={`btn-tactile py-1.5 px-2 rounded-[6px] font-mono text-[10px] font-bold uppercase tracking-wider border cursor-pointer ${idTheme === option.id
                             ? 'bg-[#173F32] text-[#F6F0E3] border-[#173F32]'
                             : 'bg-[#F6F0E3] text-[#173F32] border-[#173F32]/30 hover:bg-[#173F32]/5'
                           }`}
