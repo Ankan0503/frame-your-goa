@@ -75,11 +75,17 @@ try {
 interface ShareRecord {
   id: string;
   imageBuffer?: Buffer;
+  landscapeImageBuffer?: Buffer;
   blobImageUrl?: string;
+  blobLandscapeImageUrl?: string;
   title: string;
   description: string;
   type: string;
   createdAt: number;
+  width?: number;
+  height?: number;
+  landscapeWidth?: number;
+  landscapeHeight?: number;
   metadata?: any;
 }
 
@@ -115,10 +121,18 @@ async function getShareRecord(id: string): Promise<ShareRecord | null> {
 
       const jsonBlob = blobs.find(b => b.pathname.endsWith('.json'));
       const imageBlob = blobs.find(b => 
-        b.pathname.endsWith('.png') || 
+        (b.pathname.endsWith('.png') || 
         b.pathname.endsWith('.jpeg') || 
         b.pathname.endsWith('.jpg') || 
-        b.pathname.endsWith('.webp')
+        b.pathname.endsWith('.webp')) &&
+        !b.pathname.includes('_landscape')
+      );
+      const landscapeImageBlob = blobs.find(b => 
+        (b.pathname.endsWith('.png') || 
+        b.pathname.endsWith('.jpeg') || 
+        b.pathname.endsWith('.jpg') || 
+        b.pathname.endsWith('.webp')) &&
+        b.pathname.includes('_landscape')
       );
 
       if (jsonBlob && imageBlob) {
@@ -128,10 +142,15 @@ async function getShareRecord(id: string): Promise<ShareRecord | null> {
           return {
             id,
             blobImageUrl: imageBlob.url,
+            blobLandscapeImageUrl: landscapeImageBlob?.url,
             title: meta.title || '',
             description: meta.description || '',
             type: meta.type || 'builder',
             createdAt: meta.createdAt || Date.now(),
+            width: meta.width,
+            height: meta.height,
+            landscapeWidth: meta.landscapeWidth,
+            landscapeHeight: meta.landscapeHeight,
           };
         }
       }
@@ -301,7 +320,19 @@ async function startServer() {
   // 1. POST /api/share - Upload generated graphic and return unique share link
   app.post('/api/share', async (req, res) => {
     try {
-      const { imageDataUrl, title, description, type, metadata, id: suppliedId } = req.body;
+      const {
+        imageDataUrl,
+        landscapeDataUrl,
+        title,
+        description,
+        type,
+        metadata,
+        id: suppliedId,
+        width,
+        height,
+        landscapeWidth,
+        landscapeHeight,
+      } = req.body;
 
       if (!imageDataUrl || typeof imageDataUrl !== 'string') {
         return res.status(400).json({ error: 'Missing required imageDataUrl parameter' });
@@ -309,13 +340,25 @@ async function startServer() {
 
       cleanupExpiredShares();
 
-      // Extract base64 buffer and detect mimetype dynamically
+      // Extract base64 buffer and detect mimetype dynamically for original image
       const mimeMatch = imageDataUrl.match(/^data:(image\/\w+);base64,/);
       const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
       const extension = mimeType.split('/')[1] || 'png';
 
       const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
+
+      // Process landscape image if provided
+      let landscapeImageBuffer: Buffer | undefined;
+      let landscapeMimeType: string | undefined;
+      let landscapeExtension: string | undefined;
+      if (landscapeDataUrl) {
+        const lMimeMatch = landscapeDataUrl.match(/^data:(image\/\w+);base64,/);
+        landscapeMimeType = lMimeMatch ? lMimeMatch[1] : 'image/png';
+        landscapeExtension = landscapeMimeType.split('/')[1] || 'png';
+        const lBase64Data = landscapeDataUrl.replace(/^data:image\/\w+;base64,/, '');
+        landscapeImageBuffer = Buffer.from(lBase64Data, 'base64');
+      }
 
       // Use the provided builder ID when available (deterministic, predictable share URL),
       // otherwise fall back to a random share id.
@@ -324,6 +367,7 @@ async function startServer() {
       const baseUrl = getBaseUrl(req);
 
       let blobImageUrl = '';
+      let blobLandscapeImageUrl = '';
       const token = process.env.BLOB_READ_WRITE_TOKEN;
       if (token) {
         try {
@@ -335,12 +379,25 @@ async function startServer() {
           });
           blobImageUrl = pngBlob.url;
 
+          if (landscapeImageBuffer && landscapeMimeType && landscapeExtension) {
+            const lPngBlob = await put(`shares/${id}_landscape.${landscapeExtension}`, landscapeImageBuffer, {
+              access: 'public',
+              token,
+              contentType: landscapeMimeType,
+            });
+            blobLandscapeImageUrl = lPngBlob.url;
+          }
+
           const metadataString = JSON.stringify({
             id,
             title: title || 'HH Goa 2026 Builder Pass',
             description: description || 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
             type: type || 'builder',
             createdAt: Date.now(),
+            width: typeof width === 'number' ? width : undefined,
+            height: typeof height === 'number' ? height : undefined,
+            landscapeWidth: typeof landscapeWidth === 'number' ? landscapeWidth : undefined,
+            landscapeHeight: typeof landscapeHeight === 'number' ? landscapeHeight : undefined,
           });
           await put(`shares/${id}.json`, Buffer.from(metadataString), {
             access: 'public',
@@ -356,12 +413,18 @@ async function startServer() {
       const record: ShareRecord = {
         id,
         imageBuffer,
+        landscapeImageBuffer,
         blobImageUrl,
+        blobLandscapeImageUrl,
         title: title || 'HH Goa 2026 Builder Pass',
         description:
           description || 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
         type: type || 'builder',
         createdAt: Date.now(),
+        width: typeof width === 'number' ? width : undefined,
+        height: typeof height === 'number' ? height : undefined,
+        landscapeWidth: typeof landscapeWidth === 'number' ? landscapeWidth : undefined,
+        landscapeHeight: typeof landscapeHeight === 'number' ? landscapeHeight : undefined,
         metadata,
       };
 
@@ -369,14 +432,20 @@ async function startServer() {
 
       const shareUrl = `${baseUrl}/share/${id}`;
       const imageUrl = blobImageUrl || `${baseUrl}/api/share/image/${id}.png`;
+      const landscapeImageUrl = blobLandscapeImageUrl || (landscapeImageBuffer ? `${baseUrl}/api/share/image/${id}_landscape.png` : imageUrl);
 
       return res.json({
         shareId: id,
         shareUrl,
         imageUrl,
+        landscapeImageUrl,
         title: record.title,
         description: record.description,
         createdAt: new Date(record.createdAt).toISOString(),
+        width: record.width,
+        height: record.height,
+        landscapeWidth: record.landscapeWidth,
+        landscapeHeight: record.landscapeHeight,
       });
     } catch (err: any) {
       console.error('Error creating share link:', err);
@@ -396,20 +465,39 @@ async function startServer() {
       shareId: record.id,
       shareUrl: `${baseUrl}/share/${record.id}`,
       imageUrl: record.blobImageUrl || `${baseUrl}/api/share/image/${record.id}.png`,
+      landscapeImageUrl: record.blobLandscapeImageUrl || (record.landscapeImageBuffer ? `${baseUrl}/api/share/image/${record.id}_landscape.png` : undefined),
       title: record.title,
       description: record.description,
       type: record.type,
       createdAt: new Date(record.createdAt).toISOString(),
+      width: record.width,
+      height: record.height,
+      landscapeWidth: record.landscapeWidth,
+      landscapeHeight: record.landscapeHeight,
     });
   });
 
   // 3. GET /api/share/image/:id.png - Serve raw image PNG for Open Graph crawlers & previews
   app.get('/api/share/image/:id.png', async (req, res) => {
     const rawId = req.params.id.replace(/\.png$/, '');
-    const record = await getShareRecord(rawId);
+    const isLandscape = rawId.endsWith('_landscape');
+    const lookupId = isLandscape ? rawId.replace(/_landscape$/, '') : rawId;
+
+    const record = await getShareRecord(lookupId);
 
     if (!record) {
       return res.status(404).send('Image not found or expired');
+    }
+
+    if (isLandscape) {
+      if (record.blobLandscapeImageUrl) {
+        return res.redirect(record.blobLandscapeImageUrl);
+      }
+      if (record.landscapeImageBuffer) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        return res.send(record.landscapeImageBuffer);
+      }
     }
 
     if (record.blobImageUrl) {
@@ -574,14 +662,27 @@ async function startServer() {
     const baseUrl = getBaseUrl(req);
     let ogImage = `${baseUrl}/favicon/apple-touch-icon.png`;
     let ogUrl = `${baseUrl}${requestPath}`;
+    let ogWidth = '1200';
+    let ogHeight = '1200';
 
     if (shareId) {
       const record = await getShareRecord(shareId);
       if (record) {
         ogTitle = `${record.title} | #FrameInGoa`;
         ogDesc = record.description;
-        ogImage = record.blobImageUrl || `${baseUrl}/api/share/image/${shareId}.png`;
+        ogImage = record.blobLandscapeImageUrl || record.blobImageUrl || `${baseUrl}/api/share/image/${shareId}.png`;
         ogUrl = `${baseUrl}/share/${shareId}`;
+
+        if (record.blobLandscapeImageUrl || record.landscapeImageBuffer) {
+          ogWidth = String(record.landscapeWidth || 3056);
+          ogHeight = String(record.landscapeHeight || 1600);
+        } else if (record.width && record.height) {
+          ogWidth = String(record.width);
+          ogHeight = String(record.height);
+        } else {
+          ogWidth = '1200';
+          ogHeight = '1600';
+        }
       }
     }
 
@@ -591,8 +692,8 @@ async function startServer() {
     <meta property="og:title" content="${escapeHtml(ogTitle)}" />
     <meta property="og:description" content="${escapeHtml(ogDesc)}" />
     <meta property="og:image" content="${ogImage}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="1600" />
+    <meta property="og:image:width" content="${ogWidth}" />
+    <meta property="og:image:height" content="${ogHeight}" />
     <meta property="og:url" content="${ogUrl}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(ogTitle)}" />

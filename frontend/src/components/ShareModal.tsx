@@ -15,9 +15,14 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageDataUrl: string;
+  landscapeDataUrl?: string;
   title?: string;
   description?: string;
   type?: 'builder' | 'pfp' | 'team';
+  width?: number;
+  height?: number;
+  landscapeWidth?: number;
+  landscapeHeight?: number;
 }
 
 
@@ -26,9 +31,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
   onClose,
   imageDataUrl,
+  landscapeDataUrl,
   title = 'HH Goa 2026 Builder Pass',
   description = 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
   type = 'builder',
+  width,
+  height,
+  landscapeWidth,
+  landscapeHeight,
 }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [shareData, setShareData] = useState<ShareResponse | null>(null);
@@ -51,9 +61,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
       createShare({
         imageDataUrl,
+        landscapeDataUrl,
         title,
         description,
         type: type as 'builder' | 'pfp' | 'team',
+        width,
+        height,
+        landscapeWidth,
+        landscapeHeight,
       })
         .then((res) => {
           if (isMounted) {
@@ -69,7 +84,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         isMounted = false;
       };
     }
-  }, [isOpen, imageDataUrl, title, description, type]);
+  }, [isOpen, imageDataUrl, landscapeDataUrl, title, description, type, width, height, landscapeWidth, landscapeHeight]);
 
   if (!isOpen) return null;
 
