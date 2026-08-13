@@ -12,10 +12,10 @@ const viewFromPath = (): { view: View; initialMode?: WorkspaceMode; shareId?: st
   const path = window.location.pathname;
   if (path === '/create/team') return { view: 'studio', initialMode: 'team' };
   if (path === '/create/id' || path === '/create' || path === '/generator' || path === '/create/pfp') return { view: 'studio', initialMode: 'builder' };
-  
+
   const shareMatch = path.match(/^\/share\/([a-zA-Z0-9_-]+)/);
   if (shareMatch) return { view: 'share', shareId: shareMatch[1] };
-  
+
   return { view: 'landing' };
 };
 
@@ -24,7 +24,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>(initial.view);
   const [studioMode, setStudioMode] = useState<WorkspaceMode>(initial.initialMode || 'builder');
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
-  
+
   // Share Page States
   const [shareId, setShareId] = useState<string | null>(initial.shareId || null);
   const [shareData, setShareData] = useState<ShareResponse | null>(null);
@@ -94,10 +94,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip">
+    <div className="relative min-h-[100dvh] bg-[#F6F0E3] text-[#173F32] font-mono selection:bg-[#075B3A] selection:text-[#F6F0E3] bg-paper-noise overflow-x-clip">
       <Navbar
         onCreateIdClick={() => openStudio('builder')}
         onCreateTeamClick={() => openStudio('team')}
+        showDivider={currentView !== 'landing'}
       />
       <main className="relative w-full">
         <AnimatePresence mode="wait" initial={false} custom={direction}>
@@ -149,7 +150,7 @@ export default function App() {
               animate="center"
               exit="exit"
               transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
-              className="w-full max-w-[500px] mx-auto px-4 pt-10 pb-20 flex flex-col items-center text-center"
+              className="w-full max-w-[500px] mx-auto px-4 pt-4 pb-20 flex flex-col items-center text-center"
             >
               {shareLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-[300px]">
@@ -172,8 +173,8 @@ export default function App() {
 
                   {/* Image Preview Card */}
                   <div className="w-full max-w-[360px] bg-[#F8F2E6] border-2 border-[#173F32] rounded-[24px] p-4 shadow-md mb-8">
-                    <img 
-                      src={shareData.imageUrl} 
+                    <img
+                      src={shareData.imageUrl}
                       alt={shareData.title}
                       className="w-full h-auto rounded-[16px] border border-[#D8CDB9]"
                     />
@@ -215,6 +216,22 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Background illustration anchored to the page so it scrolls away with the content */}
+      {currentView === 'studio' && (
+        <div
+          aria-hidden="true"
+          className="absolute left-0 bottom-[6vh] pointer-events-none z-0 w-[200px] sm:w-[300px] md:w-[380px] lg:w-[560px] opacity-80 select-none"
+          style={{ height: 'clamp(480px, 72vh, 840px)' }}
+        >
+          <img
+            src="/assets/goa-framepage-bg.avif"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain object-left-bottom block"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      )}
     </div>
   );
 }

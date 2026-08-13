@@ -14,6 +14,7 @@
 }
 
 body {
+  margin: 0;
   font-family: 'IBM Plex Mono', monospace;
   background-color: #F6F0E3;
   color: #173F32;
@@ -45,12 +46,6 @@ img, svg {
 
 button, a, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
-}
-
-/* Accessible Focus States */
-*:focus-visible {
-  outline: 2px solid #075B3A !important;
-  outline-offset: 2px !important;
 }
 
 /* Physical Tactile Button Utility */

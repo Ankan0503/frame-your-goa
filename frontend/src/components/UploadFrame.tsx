@@ -230,7 +230,7 @@ export const UploadFrame: React.FC<UploadFrameProps> = ({ onFileSelect }) => {
 
       {/* DECORATIVE MINT GOA SCOOTER (FOREGROUND OVERLAY) */}
       <div
-        className="absolute z-10 pointer-events-none -left-[50px] min-[400px]:-left-[65px] sm:-left-[95px] lg:-left-[165px] -bottom-[25px] min-[400px]:-bottom-[30px] sm:-bottom-[35px] lg:-bottom-[30px] w-[150px] min-[400px]:w-[185px] sm:w-[240px] lg:w-[300px] flex flex-col items-center"
+        className="absolute z-10 pointer-events-none -left-[50px] min-[400px]:-left-[65px] sm:-left-[95px] lg:-left-[185px] -bottom-[25px] min-[400px]:-bottom-[30px] sm:-bottom-[35px] lg:-bottom-[30px] w-[150px] min-[400px]:w-[185px] sm:w-[240px] lg:w-[350px] flex flex-col items-center"
         aria-hidden="true"
       >
         {/* Subtle warm/green halo glow behind the scooter */}

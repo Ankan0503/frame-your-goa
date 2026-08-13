@@ -86,7 +86,7 @@ export const GeneratorSection: React.FC<GeneratorSectionProps> = ({
   };
 
   return (
-    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 pt-6 pb-20 relative z-10">
+    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 pt-2 pb-20 relative z-10">
       <img ref={imgRef} src={uploadedImageUrl} alt="" className="hidden" crossOrigin="anonymous" />
 
       {/* 3-COLUMN MAIN WORKSPACE GRID */}
