@@ -9,7 +9,7 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreateTeamClick, onFileSelect }) => {
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-8 sm:pt-10 lg:pt-6 pb-16 lg:pb-8 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10 xl:gap-12 bg-[#F6F0E3] relative z-10">
+    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-8 sm:pt-12 lg:pt-10 pb-16 lg:pb-0 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10 xl:gap-12 bg-[#F6F0E3] relative z-10">
       {/* Content wrapper taking up left ~48% on desktop */}
       <div className="w-full lg:w-[48%] max-w-[560px] flex flex-col items-start text-left">
         {/* 1. MAIN HEADLINE */}
@@ -147,7 +147,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
       </div>
 
       {/* SAILBOAT DOODLE (VINTAGE SKETCHBOOK STYLE) */}
-      <div 
+      <div
         className="absolute pointer-events-none z-10 hidden lg:block lg:left-[42%] xl:left-[590px] lg:bottom-[45px] xl:bottom-[65px] w-[110px] h-[70px] opacity-85"
         style={{
           transform: 'rotate(-4deg)',
@@ -234,7 +234,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
       </div>
 
       {/* FLYING BIRDS DOODLES (VINTAGE SKETCHBOOK STYLE) */}
-      <div 
+      <div
         className="absolute pointer-events-none z-10 hidden lg:block lg:left-[45%] xl:left-[610px] lg:top-[50px] xl:top-[80px] w-[240px] h-[180px]"
       >
         <svg

@@ -205,7 +205,7 @@ export const CreatePfpSection: React.FC<CreatePfpSectionProps> = ({
   };
 
   return (
-    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-[40px] pt-6 sm:pt-8 pb-28 lg:pb-16 relative z-10">
+    <section className="w-full max-w-[1400px] mx-auto px-4 sm:px-[40px] pt-2 sm:pt-3 pb-28 lg:pb-16 relative z-10">
       
       {/* 1. BACK NAVIGATION */}
       <motion.button
