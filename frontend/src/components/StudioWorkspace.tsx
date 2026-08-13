@@ -201,7 +201,14 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [shareDataUrl, setShareDataUrl] = useState<string | null>(null);
+  const [shareDataUrls, setShareDataUrls] = useState<{
+    original: string;
+    landscape: string;
+    width: number;
+    height: number;
+    landscapeWidth: number;
+    landscapeHeight: number;
+  } | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // UNIQUE BUILDER ID & QR STATE
@@ -321,7 +328,14 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         });
       }
       const paddedCanvas = padCanvasToLandscape(canvas);
-      setShareDataUrl(paddedCanvas.toDataURL('image/jpeg', 0.85));
+      setShareDataUrls({
+        original: canvas.toDataURL('image/png'),
+        landscape: paddedCanvas.toDataURL('image/jpeg', 0.85),
+        width: canvas.width,
+        height: canvas.height,
+        landscapeWidth: paddedCanvas.width,
+        landscapeHeight: paddedCanvas.height,
+      });
       setIsShareModalOpen(true);
     } catch {
       setIsShareModalOpen(true);
@@ -655,11 +669,16 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* SHARE MODAL */}
-        {shareDataUrl && (
+        {shareDataUrls && (
           <ShareModal
             isOpen={isShareModalOpen}
             onClose={() => setIsShareModalOpen(false)}
-            imageDataUrl={shareDataUrl}
+            imageDataUrl={shareDataUrls.original}
+            landscapeDataUrl={shareDataUrls.landscape}
+            width={shareDataUrls.width}
+            height={shareDataUrls.height}
+            landscapeWidth={shareDataUrls.landscapeWidth}
+            landscapeHeight={shareDataUrls.landscapeHeight}
             title="HH Goa 2026 Pass"
             description="I'm attending Hacker House Goa 2026! #FrameInGoa"
             type={activeMode}
@@ -1245,11 +1264,16 @@ export const StudioWorkspace: React.FC<StudioWorkspaceProps> = ({
         </div>
 
         {/* SHARE MODAL */}
-        {shareDataUrl && (
+        {shareDataUrls && (
           <ShareModal
             isOpen={isShareModalOpen}
             onClose={() => setIsShareModalOpen(false)}
-            imageDataUrl={shareDataUrl}
+            imageDataUrl={shareDataUrls.original}
+            landscapeDataUrl={shareDataUrls.landscape}
+            width={shareDataUrls.width}
+            height={shareDataUrls.height}
+            landscapeWidth={shareDataUrls.landscapeWidth}
+            landscapeHeight={shareDataUrls.landscapeHeight}
             title="HH Goa 2026 Pass"
             description="I'm attending Hacker House Goa 2026! #FrameInGoa"
             type={activeMode}

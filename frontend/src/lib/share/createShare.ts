@@ -1,18 +1,28 @@
 export interface ShareData {
   imageDataUrl: string;
+  landscapeDataUrl?: string;
   title?: string;
   description?: string;
   type?: 'builder' | 'pfp' | 'team';
   metadata?: Record<string, any>;
+  width?: number;
+  height?: number;
+  landscapeWidth?: number;
+  landscapeHeight?: number;
 }
 
 export interface ShareResponse {
   shareId: string;
   shareUrl: string;
   imageUrl: string;
+  landscapeImageUrl?: string;
   title: string;
   description: string;
   createdAt: string;
+  width?: number;
+  height?: number;
+  landscapeWidth?: number;
+  landscapeHeight?: number;
 }
 
 /**
@@ -22,10 +32,15 @@ export interface ShareResponse {
 export async function createShare(data: ShareData): Promise<ShareResponse> {
   const {
     imageDataUrl,
+    landscapeDataUrl,
     title = 'HH Goa 2026 Builder Pass',
     description = 'Official Hacker House Goa 2026 Pass. See you in Goa! #FrameInGoa',
     type = 'builder',
     metadata = {},
+    width,
+    height,
+    landscapeWidth,
+    landscapeHeight,
   } = data;
 
   try {
@@ -36,10 +51,15 @@ export async function createShare(data: ShareData): Promise<ShareResponse> {
       },
       body: JSON.stringify({
         imageDataUrl,
+        landscapeDataUrl,
         title,
         description,
         type,
         metadata,
+        width,
+        height,
+        landscapeWidth,
+        landscapeHeight,
       }),
     });
 
@@ -66,10 +86,15 @@ export async function createShare(data: ShareData): Promise<ShareResponse> {
         JSON.stringify({
           shareId: id,
           imageDataUrl,
+          landscapeDataUrl,
           title,
           description,
           type,
           createdAt: new Date().toISOString(),
+          width,
+          height,
+          landscapeWidth,
+          landscapeHeight,
         })
       );
     } catch {
@@ -80,9 +105,14 @@ export async function createShare(data: ShareData): Promise<ShareResponse> {
       shareId: id,
       shareUrl,
       imageUrl,
+      landscapeImageUrl: landscapeDataUrl || imageUrl,
       title,
       description,
       createdAt: new Date().toISOString(),
+      width,
+      height,
+      landscapeWidth,
+      landscapeHeight,
     };
   }
 }
@@ -110,9 +140,14 @@ export async function getShare(shareId: string): Promise<ShareResponse | null> {
         shareId: parsed.shareId,
         shareUrl: `${origin}/share/${parsed.shareId}`,
         imageUrl: parsed.imageDataUrl, // base64 directly
+        landscapeImageUrl: parsed.landscapeDataUrl || parsed.imageDataUrl,
         title: parsed.title,
         description: parsed.description,
         createdAt: parsed.createdAt,
+        width: parsed.width,
+        height: parsed.height,
+        landscapeWidth: parsed.landscapeWidth,
+        landscapeHeight: parsed.landscapeHeight,
       };
     }
   } catch {
