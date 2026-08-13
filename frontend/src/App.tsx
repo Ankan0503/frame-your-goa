@@ -116,7 +116,6 @@ export default function App() {
               <HeroSection
                 onFileSelect={handleFileSelect}
                 onCreateClick={() => openStudio('builder')}
-                onCreateTeamClick={() => openStudio('team')}
               />
             </motion.div>
           )}
@@ -216,22 +215,6 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
-
-      {/* Background illustration anchored to the page so it scrolls away with the content */}
-      {currentView === 'studio' && (
-        <div
-          aria-hidden="true"
-          className="absolute left-0 bottom-[6vh] pointer-events-none z-0 w-[200px] sm:w-[300px] md:w-[380px] lg:w-[560px] opacity-80 select-none"
-          style={{ height: 'clamp(480px, 72vh, 840px)' }}
-        >
-          <img
-            src="/assets/goa-framepage-bg.avif"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain object-left-bottom block"
-            referrerPolicy="no-referrer"
-          />
-        </div>
-      )}
     </div>
   );
 }

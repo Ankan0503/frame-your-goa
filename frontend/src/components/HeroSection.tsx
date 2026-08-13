@@ -3,11 +3,10 @@ import { UploadFrame } from './UploadFrame';
 
 interface HeroSectionProps {
   onCreateClick?: () => void;
-  onCreateTeamClick?: () => void;
   onFileSelect?: (file: File) => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreateTeamClick, onFileSelect }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onFileSelect }) => {
   return (
     <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-[40px] pt-8 sm:pt-12 lg:pt-10 pb-16 lg:pb-0 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10 xl:gap-12 bg-[#F6F0E3] relative z-10">
       {/* Content wrapper taking up left ~48% on desktop */}
@@ -77,18 +76,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </button>
-
-            <button
-              type="button"
-              onClick={onCreateTeamClick}
-              className="h-[50px] px-8 bg-[#F2A900] text-[#173F32] rounded-full font-['Oswald'] font-bold text-[15px] sm:text-[16px] uppercase tracking-[0.04em] flex items-center justify-center gap-2.5 cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(242,169,0,0.2)] hover:shadow-[0_12px_24px_rgba(242,169,0,0.35)] hover:bg-[#ffb400] hover:scale-[1.04] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 focus:outline-none"
-            >
-              <span>CREATE TEAM FRAME</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -146,7 +133,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
         <UploadFrame onFileSelect={onFileSelect} />
       </div>
 
-      {/* SAILBOAT DOODLE (VINTAGE SKETCHBOOK STYLE) */}
+      {/* SAILBOAT DOODLE (VINTAGE SKETCHBOOK STYLE) — COMMENTED OUT
       <div
         className="absolute pointer-events-none z-10 hidden lg:block lg:left-[42%] xl:left-[590px] lg:bottom-[45px] xl:bottom-[65px] w-[110px] h-[70px] opacity-85"
         style={{
@@ -159,7 +146,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full"
         >
-          {/* Triangular Sail - Hand-drawn look */}
           <path
             d="M 54 12 C 58 20, 68 32, 76 40 C 70 42, 62 41, 56 41 C 56 31, 55.5 21, 54 12 Z"
             stroke="#0B6545"
@@ -169,8 +155,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             strokeOpacity="0.9"
             fill="none"
           />
-
-          {/* Mast */}
           <path
             d="M 54 44 C 54.5 32, 53.5 22, 54 10"
             stroke="#0B6545"
@@ -178,8 +162,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             strokeLinecap="round"
             strokeOpacity="0.9"
           />
-
-          {/* Coral Accent Mark on Sail */}
           <path
             d="M 62 26 Q 64 28, 63 31"
             stroke="#F15B63"
@@ -187,8 +169,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             strokeLinecap="round"
             strokeOpacity="0.85"
           />
-
-          {/* Wooden Hull - 3 loose horizontal strokes */}
           <path
             d="M 22 43 C 40 43, 60 43, 88 43"
             stroke="#0B6545"
@@ -212,8 +192,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
             strokeLinejoin="round"
             strokeOpacity="0.9"
           />
-
-          {/* Waves underneath - 2 loose lines */}
           <path
             d="M 20 57 C 28 59, 34 56, 42 58 C 50 60, 56 57, 64 58 C 72 59, 78 57, 86 58"
             stroke="#0B6545"
@@ -232,6 +210,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCreateClick, onCreat
           />
         </svg>
       </div>
+      END SAILBOAT DOODLE */}
 
       {/* FLYING BIRDS DOODLES (VINTAGE SKETCHBOOK STYLE) */}
       <div
