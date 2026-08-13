@@ -25,6 +25,7 @@ export interface IdCardProps {
     orientation?: 'portrait' | 'landscape';
     /** Optional custom aspect ratio if adjusted later (defaults to 4/5) */
     aspectRatio?: string;
+    theme?: 'theme1' | 'theme2';
 }
 
 export const IdCard: React.FC<IdCardProps> = ({
@@ -39,6 +40,7 @@ export const IdCard: React.FC<IdCardProps> = ({
     qrDataUrl,
     orientation = 'portrait',
     aspectRatio = '4/5',
+    theme = 'theme1',
 }) => {
     /* QR + Builder ID appear only after GENERATE issues a real ID. The card keeps its
        original aspect ratio — the footer fits inside without growing the card. */
@@ -177,7 +179,7 @@ export const IdCard: React.FC<IdCardProps> = ({
                         {/* Background Layer: Loaded locally, fills entire card, clipped perfectly */}
                         <img
                             id="id-card-background-image"
-                            src="/assets/id-image-1.avif"
+                            src={theme === 'theme2' ? '/assets/id-image-2.avif' : '/assets/id-image-1.avif'}
                             alt="Hacker House Goa 2026 ID card background"
                             referrerPolicy="no-referrer"
                             className="absolute inset-0 w-full h-full object-cover object-center z-0 block"
@@ -249,10 +251,10 @@ export const IdCard: React.FC<IdCardProps> = ({
                                 {/* Name Area */}
                                 <div id="id-card-name-area" className="w-full">
                                     <p
-                                        className="font-['Calistoga'] font-bold uppercase text-[#173F32] leading-tight tracking-wide"
+                                        className={`font-['Calistoga'] font-bold uppercase leading-tight tracking-wide ${theme === 'theme2' ? 'text-[#F05A68]' : 'text-[#173F32]'}`}
                                         style={{
                                             fontSize: 'clamp(1.15rem, 6.4vw, 2.2rem)',
-                                            textShadow: '0 1px 3px rgba(255,255,255,0.7)',
+                                            textShadow: theme === 'theme2' ? '0 1px 3px rgba(23,63,50,0.15)' : '0 1px 3px rgba(255,255,255,0.7)',
                                         }}
                                     >
                                         {name || 'BUILDER NAME'}
@@ -262,7 +264,7 @@ export const IdCard: React.FC<IdCardProps> = ({
                                 {/* Role / Stack Area */}
                                 <div id="id-card-role-area" className="w-full">
                                     <p
-                                        className="font-['Oswald'] font-semibold uppercase text-[#F05A68] tracking-[0.14em]"
+                                        className={`font-['Oswald'] font-semibold uppercase tracking-[0.14em] ${theme === 'theme2' ? 'text-[#173F32]' : 'text-[#F05A68]'}`}
                                         style={{
                                             fontSize: 'clamp(0.65rem, 3vw, 0.95rem)',
                                             textShadow: '0 1px 3px rgba(255,255,255,0.7)',

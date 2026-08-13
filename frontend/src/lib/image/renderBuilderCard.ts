@@ -21,6 +21,7 @@ export interface BuilderCardData {
   orientation?: 'portrait' | 'landscape';
   cropResult?: SmartCropResult;
   qrCodeDataUrl?: string;
+  theme?: 'theme1' | 'theme2';
 }
 
 const CARD_BG_SRC = '/assets/id-image-1.avif';
@@ -68,7 +69,8 @@ export async function renderBuilderCard(
 
   // 1. Card background (object-cover crop of the card art to fill the 4:5 canvas, like the DOM card)
   try {
-    const bg = await loadImage(CARD_BG_SRC);
+    const bgSrc = data.theme === 'theme2' ? '/assets/id-image-2.avif' : CARD_BG_SRC;
+    const bg = await loadImage(bgSrc);
     const scale = Math.max(width / bg.naturalWidth, height / bg.naturalHeight);
     const srcW = width / scale;
     const srcH = height / scale;
@@ -158,7 +160,7 @@ export async function renderBuilderCard(
   const nameText = (data.fullName || 'BUILDER NAME').toUpperCase();
   let nameSize = width * LAYOUT.nameSize;
   ctx.textAlign = 'center';
-  ctx.fillStyle = COLORS.deepForest;
+  ctx.fillStyle = data.theme === 'theme2' ? COLORS.coralRed : COLORS.deepForest;
   ctx.font = `bold ${Math.round(nameSize)}px ${FONTS.calistoga}`;
   while (ctx.measureText(nameText).width > width * 0.84 && nameSize > width * 0.045) {
     nameSize -= 2;
@@ -186,13 +188,13 @@ export async function renderBuilderCard(
   const stackText = (data.role || 'FULLSTACK DEV').toUpperCase();
   const stackSize = width * LAYOUT.stackSize;
   const stackBaseline = pillY - gap;
-  ctx.fillStyle = COLORS.coralRed;
+  ctx.fillStyle = data.theme === 'theme2' ? COLORS.deepForest : COLORS.coralRed;
   ctx.font = `bold ${Math.round(stackSize)}px ${FONTS.oswald}`;
   ctx.fillText(stackText, centerX, stackBaseline);
 
   // 7. Name sits just above the stack
   const nameBaseline = stackBaseline - gap - Math.round(stackSize);
-  ctx.fillStyle = COLORS.deepForest;
+  ctx.fillStyle = data.theme === 'theme2' ? COLORS.coralRed : COLORS.deepForest;
   ctx.font = `bold ${Math.round(nameSize)}px ${FONTS.calistoga}`;
   ctx.fillText(nameText, centerX, nameBaseline);
 
